@@ -8,18 +8,10 @@ import struct   # to pack and unpack the 4bytes, C float type to python double "
 from pdaConstants import *
 import saveList
 
-# BCM pins numbering, as the wiringpi.wiringPiSetupGpio() function declares to use the BCM.
-# RF95 CS=GPIO8, IRQ=GPIO25, RST=GPIO22, LED=GPIO23 OK NodeID=1 @ 868.00MHz
+
 # LED_PIN = 23
-RST_PIN = 24            # Reset
-CS_PIN = 8              # Chip Select (Enable), CE0
-IRQ_PIN = 25            # Interrupt
 
 SPI_WRITE_MASK = 0x80
-
-FREQUENCY = 915   #Mhz
-
-SPIchannel = 0  # SPI Channel (CE0)
 
 SPIspeed = 1562500  # Clock Speed in Hz (base 400MHz/256)
 
@@ -32,11 +24,11 @@ def init(managerDictArg, logListArg):
     logList = logListArg
 
     wiringpi.wiringPiSetupGpio()          # Set the BCM pin numbering
-    wiringpi.wiringPiSPISetup(SPIchannel, SPIspeed)
+    wiringpi.wiringPiSPISetup(LORA_SPI_CHANNEL, SPIspeed)
 
-    wiringpi.pinMode(IRQ_PIN, wiringpi.GPIO.INPUT)
-    wiringpi.pullUpDnControl(IRQ_PIN, wiringpi.GPIO.PUD_DOWN)
-    wiringpi.pinMode(RST_PIN, wiringpi.GPIO.OUTPUT)
+    wiringpi.pinMode(PIN_LORA_IRQ, wiringpi.GPIO.INPUT)
+    wiringpi.pullUpDnControl(PIN_LORA_IRQ, wiringpi.GPIO.PUD_DOWN)
+    wiringpi.pinMode(PIN_LORA_RST, wiringpi.GPIO.OUTPUT)
     # wiringpi.pinMode(LED_PIN, wiringpi.GPIO.OUTPUT)
 
     reset()
@@ -96,7 +88,7 @@ def main():
     print ""
 
     print "set frequency"
-    set_frequency(FREQUENCY)
+    set_frequency(LORA_FREQUENCY)
     print ""
 
     print "verify frequency"
@@ -110,12 +102,11 @@ def main():
     spi_write(RF95Registers.dio_mapping_g0, 0x00)  # RxDone
 
     print "waiting"
-    wiringpi.wiringPiISR(IRQ_PIN, wiringpi.GPIO.INT_EDGE_RISING, gpio_callback, args = 3)
+    wiringpi.wiringPiISR(PIN_LORA_IRQ, wiringpi.GPIO.INT_EDGE_RISING, gpio_callback)
 
-    while not managerDict["shutdownRequested"]:
-        
-        wiringpi.delay(0.2)
-    
+    while True: #not managerDict["shutdownRequested"]:
+        wiringpi.delay(1000000000) # Having this delay low <2000, was bugging the code.
+    #saveList.deleteFileIfEmpty()
     
     
 def twos_complement(input_value, num_bits):
@@ -128,7 +119,7 @@ def twos_complement(input_value, num_bits):
 # working spiRead function which returns the int value of the returned register
 def spi_read(register):
     send_data = str(bytearray([register & ~SPI_WRITE_MASK, 0x0]))
-    length, recv_data = wiringpi.wiringPiSPIDataRW(SPIchannel, send_data)
+    length, recv_data = wiringpi.wiringPiSPIDataRW(LORA_SPI_CHANNEL, send_data)
     if length != 2:
         raise ValueError("not enough data returned")
     return ord(recv_data[1])
@@ -143,7 +134,7 @@ def spi_burst_read(register, length):
 
 def spi_write(register, value):
     send_data = str(bytearray([register | SPI_WRITE_MASK, value]))
-    length, recv_data = wiringpi.wiringPiSPIDataRW(SPIchannel, send_data)
+    length, recv_data = wiringpi.wiringPiSPIDataRW(LORA_SPI_CHANNEL, send_data)
     return ord(recv_data[1])  # let's return the return value, probably it's the previous one or whatever
 
 
@@ -370,19 +361,17 @@ global_byte_sum = 0
 global_last_second_callback_time = 0
 global_bytesPerSecond = 0
 def gpio_callback():
-    #print "GPIO_CALLBACK!", time.time()
+    #print "Call!"
     # wiringpi.digitalWrite(LED_PIN, 1)
     if managerDict["readingRF"] and not managerDict["shutdownRequested"]:
         irq_flags = spi_read(RF95Registers.irq_flags)
         result = RF95Interrupt(irq_flags)
-        #print result
-
+        # print result
         if result.rx_done():
             # // Have received a packet
             # uint8_t len = spiRead(RH_RF95_REG_13_RX_NB_BYTES);
             packet_length = spi_read(RF95Registers.last_packet_payload_bytes)
             #print "last packet length", packet_length
-
             # // Reset the fifo read ptr to the beginning of the packet
             # spiWrite(RH_RF95_REG_0D_FIFO_ADDR_PTR, spiRead(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR));
             last_packet_buffer_address = spi_read(RF95Registers.fifo_last_packet_address)
@@ -398,9 +387,9 @@ def gpio_callback():
             #print "valid headers", (spi_read(RF95Registers.valid_header_count_msb) << 8 | spi_read(RF95Registers.valid_header_count_lsb))
             #print "valid packets", (spi_read(RF95Registers.valid_packet_count_msb) << 8 | spi_read(RF95Registers.valid_packet_count_lsb))
             # Estimation of SNR on last packet received.In two's compliment format mutiplied(sic!) by 4.
-            SNR = twos_complement(spi_read(RF95Registers.last_packet_snr) & ~0x80, 7) / 4
+            varSNR = twos_complement(spi_read(RF95Registers.last_packet_snr) & ~0x80, 7) / 4
             #print "last packet SNR", varSNR
-            RSSI = -137 + spi_read(RF95Registers.last_packet_rssi)
+            varRSSI = -137 + spi_read(RF95Registers.last_packet_rssi)
             #print "last packet RSSI", varRSSI
 
 
@@ -418,43 +407,48 @@ def gpio_callback():
                     global_bytesPerSecond = global_byte_sum / timePassedBPS
                     global_last_second_callback_time = time.time()
                     global_byte_sum = 0
-                    
                 global_byte_sum += RF_PACKET_DATA_LENGTH_BYTE
                 
-                for variable in range (len(data)/4):
-                
+                for variable in range ((len(data)/4) - 2):
                     # https://stackoverflow.com/a/25559055
                     variableData = data[8+(variable * 4):12+(variable * 4)]
                     packedBytes = struct.pack('4B', *variableData)
-                    
                     lengthMulList = managerDict["logLength"] * DATA_LIST_VARIABLES
                     # Assigns the value of the variable to the list, and save it.
-                    logList[lengthMulList + variable] = struct.unpack('>f', packedBytes)
-                    saveList.appendListToFile(logList[lengthMulList + variable])
                     
-                    
-            # Gets and save additional data
-            # Apogee
-            if logList[lengthMulList + DATA_LIST_BMP_180_ALT] > managerDict["apogee"]:
-                if logList[lengthMulList + DATA_LIST_BMP_180_ALT] < RF_MAX_APOGEE:        # Filters eventual junks, so it won't mess the 2004 display.
-                    managerDict["apogee"] = int(logList[lengthMulList + DATA_LIST_BMP_180_ALT])
+                    logList[lengthMulList + variable] = struct.unpack('<f', packedBytes)[0]
                 
-            # SNR
-            logList[lengthMulList + DATA_LIST_SNR] = varSNR
-            saveList.appendListToFile(varSNR)
+                # Gets and save additional data
+                # Apogee
+                if logList[lengthMulList + DATA_LIST_BMP_180_ALT] > managerDict["apogee"]:
+                    if logList[lengthMulList + DATA_LIST_BMP_180_ALT] < RF_MAX_APOGEE:        # Filters eventual junks, so it won't mess the 2004 display.
+                        managerDict["apogee"] = int(logList[lengthMulList + DATA_LIST_BMP_180_ALT])
+                # SNR
+                logList[lengthMulList + DATA_LIST_SNR] = varSNR
+                
+                # RSSI
+                logList[lengthMulList + DATA_LIST_RSSI] = varRSSI
+                
+                # Millis to Seconds
+                logList[lengthMulList + DATA_LIST_PACKET_TIME] = logList[lengthMulList + DATA_LIST_PACKET_TIME]/1000
+                saveList.appendListToFile(logList[lengthMulList:lengthMulList + DATA_LIST_VARIABLES])
+
+                managerDict["logLength"] += 1
+                
+                managerDict["bytePerSecondRF"] = int(global_bytesPerSecond)
             
-            # RSSI
-            logList[lengthMulList + DATA_LIST_RSSI] = varRSSI
-            saveList.appendListToFile(varRSSI)
-            
-            managerDict["logLength"] += 1
-            
-            managerDict["bytePerSecondRF"] = global_bytesPerSecond
-            
+            elif data[4:8] == RF_CUSTOM_HEADER_EXTRA_LIST:
+                
+                
+                
+                
+
+                managerDict["logLength"] += 1
+                
+                managerDict["bytePerSecondRF"] = int(global_bytesPerSecond)
     # spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
     spi_write(0x12, 0xff)
     # wiringpi.digitalWrite(LED_PIN, 0)
-
 
 
 #def shutdown(signum, frame):
@@ -465,9 +459,9 @@ def gpio_callback():
 
 def reset():
     print "Resetting RF95"
-    wiringpi.digitalWrite(RST_PIN, 0)
+    wiringpi.digitalWrite(PIN_LORA_RST, 0)
     time.sleep(0.150)
-    wiringpi.digitalWrite(RST_PIN, 1)
+    wiringpi.digitalWrite(PIN_LORA_RST, 1)
     time.sleep(0.1)
 
 

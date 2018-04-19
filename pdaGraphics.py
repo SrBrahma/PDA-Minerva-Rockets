@@ -32,30 +32,30 @@ GRAPH_X_AXIS_DEFAULT_INFOS_LIST = [
     ]
     
 GRAPH_Y_AXIS_DEFAULT_INFOS_LIST = [
-    ["GpsSats", "GpsSats", 0, 7, DATA_LIST_GPS_SATS],           # 0     7max explain: It logically will never reach >6 on Earth surface, but nice to see if there was a reception error (if == 7)
-    ["GpsAlt", "GpsAlt(m)", 0, 3500, DATA_LIST_GPS_ALT],        # 1
-    ["GpsVel", "GpsVel(m/s)", 0, DATA_LIST_GPS_VEL],            # 2
-    ["GpsVelTheta", "GpsVelTheta(º)", DATA_LIST_GPS_VEL_THETA], # 3
+                #["GpsSats", "GpsSats", 0, 7, DATA_LIST_GPS_SATS],           # 0     7max explain: It logically will never reach >6 on Earth surface, but nice to see if there was a reception error (if == 7)
+                # ["GpsAlt", "GpsAlt(m)", 0, 3500, DATA_LIST_GPS_ALT],        # 0
+                # ["GpsVel", "GpsVel(m/s)", 0, DATA_LIST_GPS_VEL],            # 2
+                # ["GpsVelTheta", "GpsVelTheta(º)", DATA_LIST_GPS_VEL_THETA], # X
 
-    ["MagnX", "MagnX", -360, 360, DATA_LIST_MAGN_X],            # 4
-    ["MagnY", "MagnY", -360, 360, DATA_LIST_MAGN_Y],            # 5
-    ["MagnZ", "MagnZ", -360, 360, DATA_LIST_MAGN_Z],            # 6
+    ["Bmp180Press", "Bmp180Press(Pa)", 0, 60, DATA_LIST_BMP_180_PRESS], # 1
+    ["Bmp180Alt", "Bmp180Alt(m)", 0, 3500, DATA_LIST_BMP_180_ALT],      # 2
+    ["Bmp180Temp", "Bmp180Temp(ºC)", 0, 60, DATA_LIST_BMP_180_TEMP],    # 3
     
-    ["AccelX", "AccelX(m/s^2)", -200, 200, DATA_LIST_ACCEL_X],  # 7
-    ["AccelY", "AccelY(m/s^2)", -200, 200, DATA_LIST_ACCEL_Y],  # 8
-    ["AccelZ", "AccelZ(m/s^2)", -200, 200, DATA_LIST_ACCEL_Z],  # 9
+    ["AccelX", "AccelX(m/s^2)", -200, 200, DATA_LIST_ACCEL_X],  # 4
+    ["AccelY", "AccelY(m/s^2)", -200, 200, DATA_LIST_ACCEL_Y],  # 5
+    ["AccelZ", "AccelZ(m/s^2)", -200, 200, DATA_LIST_ACCEL_Z],  # 6
     
-    ["GyroX", "GyroX", -10, 10, DATA_LIST_GYRO_X],              # 10
-    ["GyroY", "GyroY", -10, 10, DATA_LIST_GYRO_Y],              # 11
-    ["GyroZ", "GyroZ", -10, 10, DATA_LIST_GYRO_Z],              # 12
+    ["GyroX", "GyroX", -10, 10, DATA_LIST_GYRO_X],              # 7
+    ["GyroY", "GyroY", -10, 10, DATA_LIST_GYRO_Y],              # 8
+    ["GyroZ", "GyroZ", -10, 10, DATA_LIST_GYRO_Z],              # 9
     
-    ["Bmp180Press", "Bmp180Press(Pa)", 0, 60, DATA_LIST_BMP_180_PRESS], # 13
-    ["Bmp180Temp", "Bmp180Temp(ºC)", 0, 60, DATA_LIST_BMP_180_TEMP],    # 14
-    ["Bmp180Alt", "Bmp180Alt(m)", 0, 3500, DATA_LIST_BMP_180_ALT],      # 15
+    ["MagnX", "MagnX", -360, 360, DATA_LIST_MAGN_X],            # 10
+    ["MagnY", "MagnY", -360, 360, DATA_LIST_MAGN_Y],            # 11
+    ["MagnZ", "MagnZ", -360, 360, DATA_LIST_MAGN_Z]             # 12
     
-    ["SystemResets", "SystemResets", 0, 10, DATA_LIST_SYSTEM_RESETS],   # 16
+                # ["SystemResets", "SystemResets", 0, 10, DATA_LIST_SYSTEM_RESETS],   # X
     
-    ["Photoresistor", "Photoresistor", 0, 1023, DATA_LIST_LDR]          # 17
+                # ["Photoresistor", "Photoresistor", 0, 1023, DATA_LIST_LDR]          # 14
     ]
     
     
@@ -66,7 +66,9 @@ GRAPH_Y_AXIS_DEFAULT_INFOS_LIST = [
 
 # The defaults variablesId's to be loaded on the graph
 global_graphXAxisVarId = 1   # Time
-global_graphYAxisVarId = 15  # Altitude
+global_graphYAxisVarId = 2  # Altitude
+
+global_autoScaleX = True
 
 # The graphs values are designed to display the maximum of 4algarisms+'-'.
 GRAPH_AXIS_INFO_NAME = 0
@@ -162,10 +164,36 @@ def mainLoop(managerDict, logArray):
                 redrawAll = False
                 startFromLogId = 0
                 hasDrawnAllX = 0
-                
+            
+            
+                    
             logLength = managerDict["logLength"]
+            
+            if global_autoScaleX:
+                if global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] != logArray[global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]:
+                    global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = int (logArray[global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]])
+                
+                
+                if global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] < logArray[(logLength - 1) * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]:
+                    global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] = int (logArray[(logLength - 1) * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]])
+                    graphDrawAxisInfos(drawValues = True)
+                    startFromLogId = 0
+                    hasDrawnAllX = 0
+                    
+            '''
+            if global_autoScaleY:
+                if global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] > logArray[global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]:
+                    global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = int (logArray[global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]])
+                
+                
+                if global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] < logArray[(logLength - 1) * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]:
+                    global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] = int (logArray[(logLength - 1) * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]])
+                    graphDrawAxisInfos(drawValues = True)
+                    startFromLogId = 0
+                    hasDrawnAllX = 0
+            '''
+            
             if (logLength > startFromLogId and not hasDrawnAllX):
-                # logList = logList + managerDict["logList"][lastLogCopied:] # If doesnt copy the content, the reading will take ages (looks like for each access, it will copy the entire list, each time)
                 hasDrawnAllX, graphPrevXPos, graphPrevYPos = graphPlotGraphic(logArray, logLength, startFromLogId, graphPrevXPos, graphPrevYPos)
                 startFromLogId = logLength
             
@@ -268,7 +296,6 @@ GRAPH_Y_DIST = GRAPH_0_OF_Y_AXIS_Y_POS - GRAPH_MAX_OF_Y_AXIS_Y_POS
 
 GRAPH_REFRESH_DELAY = 0.2
 
-GRAPH_PLOT_OUT_OF_BOUNDS_COUNTER = 5
 
 # The first return is "if has drawn all the X axis variable".
 # There is a ambiguity in dataCoords/graphicDisplayCoords, be careful. On future I will improve it, but THERE IS NO TIME FOR IT HELP ME
@@ -280,8 +307,7 @@ def graphPlotGraphic(logList, logLength, startFromLogId, prevXPos, prevYPos):
     yDataMin = global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE]
     yDataMax = global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE]
     relativeYDataMax = float(yDataMax - yDataMin)
-    
-    outOfBoundsCounter = 0
+
     if (relativeXDataMax and relativeYDataMax): # If they aren't equal to 0 (would make a division by 0 in the code)
 
         for logId in range (startFromLogId, logLength):
@@ -289,11 +315,12 @@ def graphPlotGraphic(logList, logLength, startFromLogId, prevXPos, prevYPos):
             xValue = logList[logId * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]
             if xValue < global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE]:
                 xValue = global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE]
+                graphicLCD.drawVerticalLine(GRAPH_0_OF_X_AXIS_X_POS, GRAPH_MAX_OF_Y_AXIS_Y_POS + 4, GRAPH_0_OF_Y_AXIS_Y_POS - 4, use_memPlot = 1)
+                 
             elif xValue > global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE]:
-                outOfBoundsCounter += 1
-                if outOfBoundsCounter > GRAPH_PLOT_OUT_OF_BOUNDS_COUNTER:
-                    graphicLCD.memDump()
-                    return 1, GRAPH_MAX_OF_X_AXIS_X_POS, GRAPH_0_OF_Y_AXIS_Y_POS # Returns the position maxOfX, 0ofY, so the nexts functions call with connect points wont mess the graph.
+                graphicLCD.drawVerticalLine(GRAPH_MAX_OF_X_AXIS_X_POS, GRAPH_MAX_OF_Y_AXIS_Y_POS + 4, GRAPH_0_OF_Y_AXIS_Y_POS - 4, use_memPlot = 1)
+                graphicLCD.memDump()
+                return 1, GRAPH_MAX_OF_X_AXIS_X_POS, GRAPH_0_OF_Y_AXIS_Y_POS # Returns the position maxOfX, 0ofY, so the nexts functions call with connect points wont mess the graph.
                 
                 xValue = global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] 
                 
@@ -909,6 +936,7 @@ def drawAndControlMenu(managerDict):
     global global_menuIdOfTopOption
     global global_menuHoveredOptionId
     global global_menuCloseMenu
+    global global_autoScaleX
 
     def menuChangeMenu(newOptionKey):
         global global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption, global_menuHoveredOptionId
@@ -1055,6 +1083,8 @@ def drawAndControlMenu(managerDict):
         global global_graphYAxisInfoList
         global global_graphYAxisVarId
         global global_displayMode
+        global global_graphConnectPoints
+        global global_autoScaleX
         
         if nameOfVariableStr == "xMin":
             global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = menuEntryTextBox("Initial X", global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE])
@@ -1083,11 +1113,26 @@ def drawAndControlMenu(managerDict):
             graphDrawAxisInfos(drawValues = True, do_memDump = True)
 
         elif nameOfVariableStr == "connectPoints":
-            global global_graphConnectPoints
             global_graphConnectPoints = not global_graphConnectPoints
             
             # Change the variable value in the list (**** python)
             entireOptionDict["graphMainOptionList"][1][3][MENU_OPTIONS_LIST_VARIABLE] = global_graphConnectPoints
+            
+            menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
+            menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
+            graphicLCD.memDump()
+            
+        elif nameOfVariableStr == "stopReading":
+            managerDict["readingRF"] = not managerDict["readingRF"]
+            
+            if managerDict["readingRF"]:
+                string = "Stop reading"
+            else:
+                string = "Start reading"
+                
+            # Change the variable value in the list (**** python)
+            entireOptionDict["graphSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
+            entireOptionDict["gpsSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
             
             menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
             menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
@@ -1113,6 +1158,15 @@ def drawAndControlMenu(managerDict):
             global_graphXAxisVarId = additionalVariable
             graphDrawAxisInfos(drawValues = True, drawNames = True, do_memDump = True)
             
+        elif nameOfVariableStr == "autoScaleX":
+            global_autoScaleX = not global_autoScaleX
+            
+            entireOptionDict["graphMainOptionList"][1][4][MENU_OPTIONS_LIST_VARIABLE] = global_autoScaleX
+            
+            menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
+            menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
+            graphicLCD.memDump()
+            
     # [["name to write", onlyDisplaysValue, (functionToCall, args), variable, isCheckType, #optional# valueToCheckCircle], [other options]]
     entireOptionDict = {
         "gpsMainOptionList": [
@@ -1132,11 +1186,12 @@ def drawAndControlMenu(managerDict):
             
         "gpsSystemMenu": [
             "SYSTEM MENU", [
-            ["Stop reading", False, [menuChangeValue, "connectPoints"], 0, 0], # Will change to Start reading, if changed.
+            ["", False, [menuChangeValue, "stopReading"], 0, 0],    # Will change to Start reading, if changed.
             ("Sys shutdown", False, (menuShutdown, managerDict), 0, 0),
             ("Return", False, (menuChangeMenu, "gpsChangeModeList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
+            
             
         "graphMainOptionList": [
             "GRAPHIC MODE MENU", [
@@ -1144,6 +1199,7 @@ def drawAndControlMenu(managerDict):
             ("Change Y axis", False, (menuChangeMenu, "graphChangeYAxisList"), 0, 0),
             ("Change X axis", False, (menuChangeMenu, "graphChangeXAxisList"), 0, 0),
             ["Connect points", False, [menuChangeValue, "connectPoints"], global_graphConnectPoints, 2],
+            ["Auto scaling X", False, [menuChangeValue, "autoScaleX"], global_autoScaleX, 2],
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
     
@@ -1158,7 +1214,7 @@ def drawAndControlMenu(managerDict):
             
         "graphSystemMenu": [
             "SYSTEM MENU", [
-            ["Stop reading", False, [menuChangeValue, "connectPoints"], 0, 0], # Will change to Start reading, if changed.
+            ["", False, [menuChangeValue, "stopReading"], 0, 0],    # Will change to Start reading, if changed.
             ("Sys shutdown", False, (menuShutdown, managerDict), 0, 0),
             ("Return", False, (menuChangeMenu, "graphChangeModeList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
@@ -1205,6 +1261,15 @@ def drawAndControlMenu(managerDict):
     entireOptionDict["graphChangeXVariable"][1].append(("Return", False, (menuChangeMenu, "graphChangeXAxisList"), 0, 0))
     entireOptionDict["graphChangeXVariable"][1].append(("Close menu", False, (menuCloseMenu,), 0, 0))
     
+    if managerDict["readingRF"]:
+        string = "Stop reading"
+    else:
+        string = "Start reading"
+                
+        # Change the variable value in the list (**** python)
+    entireOptionDict["gpsSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
+    entireOptionDict["graphSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
+            
     # Default actions:
     menuDrawBasicWindow()
     

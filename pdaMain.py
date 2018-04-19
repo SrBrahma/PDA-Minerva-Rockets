@@ -1,15 +1,16 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
+
 import RPi.GPIO as GPIO
 import math
 import time
 from os import system
 import sys
-# import timeit
 import multiprocessing
 import keyboard
 import gps
 
+# import timeit
 # Custom packages:
 import I2C_LCD_driver
 from pdaConstants import *
@@ -23,8 +24,7 @@ import pdaLoRa
 ############################################################
 #                    CONFIG                       
 
-MAGNETOMETER_INTERVAL = 0.07 # Actually should be 0.066667 (the magnetometer refresh rate, 15Hz = 1.0/15.0s),
-# but I will leave a little more to avoid same readings.
+MAGNETOMETER_INTERVAL = 0.07 # 0.066667 (the magnetometer refresh rate, 15Hz = 1.0/15.0s), but I will leave a little more to avoid same readings.
 
 SHUTDOWN_CHECK_INTERVAL = 0.1
 
@@ -61,7 +61,6 @@ def getKeyPressEventFunction(key):
         
         if keysList[key.scan_code][0] == 0: # if not pressed yet
             keysList[key.scan_code][0] = 1
-            print "aa"
             #keysList[key.scan_code][1] = key.time
             
             if key.name == KEY_CHANGE_ACTIVE_DISPLAY:
@@ -81,7 +80,7 @@ def getKeyReleaseEventFunction(key):
         keysList[key.scan_code][0] = 0
         # keysList[key.scan_code][1] = 0 # resets the time
 
-
+'''
 def keyboardInitialize():        # If there was no keyboard connected on boot, an error would occur.
     try:
         keyboard.on_press(getKeyPressEventFunction)          # EVENT
@@ -89,7 +88,7 @@ def keyboardInitialize():        # If there was no keyboard connected on boot, a
         return 1
     except:
         return 0
-
+'''
 
 def readGps(managerDict):
     # Listen on port 2947 (gpsd) of localhost
@@ -100,14 +99,12 @@ def readGps(managerDict):
         while not managerDict["shutdownRequested"]:
                 # GET GPS DATA
             gpsReport = session.next()
-            # Wait for a 'TPV' report and display the current time
-            # To see all report data, uncomment the line below
             #print gpsReport
             # pdaDataDict = ["gpsLat": 0, "gpsLon": 0, "magnBearing": 0]
             if gpsReport['class'] == 'TPV': # Is this needed?
                 tempDict = dict(managerDict["pdaDataDict"])
                 if hasattr(gpsReport, 'lon'):
-                #print "LONGIT = ", gpsReport.lon
+                #print "LON = ", gpsReport.lon
                     tempDict["gpsLon"] = gpsReport.lon
                     if not tempDict["gpsIsOn"]:
                         tempDict["gpsIsOn"] = 1
@@ -144,57 +141,57 @@ RSSI_MAX_LEN = 4
 BPS_BASE_POS = 7
 BPS_MAX_LEN = 4
 
-RSTS_BASE_POS = 7
-RSTS_MAX_LEN = 3
 
 def fixStringLcd(string, maxLength):
     if len(string) > maxLength:
         #string = string[len(string) - maxLength + 1:]       # Remove exceding chars to the left
         string = "X" * maxLength
-    string = " " * (maxLength - len(string)) + string       # Fill the left with spaces, to clear previous values
+    
+    return (" " * (maxLength - len(string))) + string       # Fill the left with spaces, to clear previous values
         
 def printHealthLcd(init = False):
     global charLcdHealth
     # lcd_display_string (string, row (1~4), column (0~19))
-    #try:
     if init:
-        try:
-            charLcdHealth = I2C_LCD_driver.lcd(CHAR_LCD_HEALTH_I2C_ADDRESS)
-                                              #12345678901234567890#
-            charLcdHealth.lcd_display_string ("AP    0m | PID     0", 1, 0)
-            charLcdHealth.lcd_display_string ("SNR    0 | RSSI    0", 2, 0)
-            charLcdHealth.lcd_display_string ("B/s    0 | PGPS  OFF", 3, 0)
-            charLcdHealth.lcd_display_string ("RSTS   0 | RGPS  OFF", 4, 0)
-        except:
-            pass
+        charLcdHealth = I2C_LCD_driver.lcd(CHAR_LCD_HEALTH_I2C_ADDRESS)
+                                          #12345678901234567890#
+        charLcdHealth.lcd_display_string ("AP    0m | PID     0", 1, 0)
+        charLcdHealth.lcd_display_string ("SNR    0 | RSSI    0", 2, 0)
+        charLcdHealth.lcd_display_string ("B/s    0 | PGPS  OFF", 3, 0)
+        charLcdHealth.lcd_display_string ("READ     | RGPS  OFF", 4, 0)
     
     else:
         string = str(managerDict["apogee"])
-        fixStringLcd(string, APOGEE_MAX_LEN)
+        string = fixStringLcd(string, APOGEE_MAX_LEN)
         charLcdHealth.lcd_display_string (string, 1, APOGEE_BASE_POS - len(string) + 1)
         
         string = str(int(logArray[(managerDict["logLength"] - 1) * DATA_LIST_VARIABLES + DATA_LIST_PACKET_ID]))
-        fixStringLcd(string, PID_MAX_LEN)
+        string = fixStringLcd(string, PID_MAX_LEN)
         charLcdHealth.lcd_display_string (string, 1, PID_BASE_POS - len(string) + 1)
         
         
         string = str(int(logArray[(managerDict["logLength"] - 1) * DATA_LIST_VARIABLES + DATA_LIST_SNR]))
-        fixStringLcd(string, SNR_MAX_LEN)
+        string = fixStringLcd(string, SNR_MAX_LEN)
         charLcdHealth.lcd_display_string (string, 2, SNR_BASE_POS - len(string) + 1)
         
+        
         string = str(int(logArray[(managerDict["logLength"] - 1) * DATA_LIST_VARIABLES + DATA_LIST_RSSI]))
-        fixStringLcd(string, RSSI_MAX_LEN)
+        string = fixStringLcd(string, RSSI_MAX_LEN)
         charLcdHealth.lcd_display_string (string, 2, RSSI_BASE_POS - len(string) + 1)
         
         
         string = str(managerDict["bytePerSecondRF"])
-        fixStringLcd(string, BPS_MAX_LEN)
+        string = fixStringLcd(string, BPS_MAX_LEN)
         charLcdHealth.lcd_display_string (string, 3, BPS_BASE_POS - len(string) + 1)
         
-        string = str(int(logArray[(managerDict["logLength"] - 1) * DATA_LIST_VARIABLES + DATA_LIST_SYSTEM_RESETS]))
-        fixStringLcd(string, RSTS_MAX_LEN)
-        charLcdHealth.lcd_display_string (string, 4, RSTS_BASE_POS - len(string) + 1)
+        #string = str(int(logArray[(managerDict["logLength"] - 1) * DATA_LIST_VARIABLES + DATA_LIST_SYSTEM_RESETS]))
+        #fixStringLcd(string, RSTS_MAX_LEN)
+        #charLcdHealth.lcd_display_string (string, 4, RSTS_BASE_POS - len(string) + 1)
         
+        if managerDict["readingRF"]:
+            charLcdHealth.lcd_display_string (" ON", 4, 5)
+        else:
+            charLcdHealth.lcd_display_string ("OFF", 4, 5)
         
         if managerDict["pdaDataDict"]["gpsIsOn"]:
             charLcdHealth.lcd_display_string (" ON", 3, 17)
@@ -205,75 +202,54 @@ def printHealthLcd(init = False):
             charLcdHealth.lcd_display_string (" ON", 4, 17)
         else:
             charLcdHealth.lcd_display_string ("OFF", 4, 17)
-        
-    
     
             
 def main():
     global global_currentGraphicDisplay
     global managerDict
     
-    
     global_currentGraphicDisplay = 0
     managerDict = multiprocessing.Manager().dict()
     
-    managerDict.update({"doShutdown0": 0, "doShutdown1": 0, "keyPressed0": 0, "keyPressed1": 0, "shutdownRequested": False, "logLength": 0, "pdaDataDict": pdaDataDict, "readingRF": 1, "apogee": 0, "bytePerSecondRF": 0}) # Is the same as the lines below
+    managerDict.update({"doShutdown0": 0, "doShutdown1": 0, "keyPressed0": 0, "keyPressed1": 0, "shutdownRequested": 0, "logLength": 0, "pdaDataDict": pdaDataDict, "readingRF": 1, "apogee": -999, "bytePerSecondRF": 0}) # Is the same as the lines below
 
-        
-    #managerDict["logList"] = logList
-    #print logList
     
     # Start display 0
     pdaGraphicProcess0 = multiprocessing.Process(name="pdaDisplay0", target=pdaGraphics.init, 
                     #managerDict  pinRW                 pinE    haveReset   pinReset   thisGraphicId initImageId initInDisplayMode
-        args=(managerDict, logArray, PIN_DISPLAY0_RW, PIN_DISPLAY0_E, True, PIN_DISPLAYS_RST, 0, DISPLAY_IMAGE_ROCKETS, DISPLAY_MODE_GRAPHIC))
+        args=(managerDict, logArray, PIN_DISPLAY0_RW, PIN_DISPLAY0_E, True, PIN_DISPLAYS_RST, 0, DISPLAY_IMAGE_BRAZIL, DISPLAY_MODE_GRAPHIC))
     pdaGraphicProcess0.start()
     
     # Start display 1
     pdaGraphicProcess1 = multiprocessing.Process(name="pdaDisplay1", target=pdaGraphics.init, 
                     #managerDict  pinRW                 pinE    haveReset   pinReset   thisGraphicId initImageId initInDisplayMode
-        args=(managerDict, logArray, PIN_DISPLAY1_RW, PIN_DISPLAY1_E, False, PIN_DISPLAYS_RST, 1, DISPLAY_IMAGE_BRAZIL, DISPLAY_MODE_GPS))
+        args=(managerDict, logArray, PIN_DISPLAY1_RW, PIN_DISPLAY1_E, False, PIN_DISPLAYS_RST, 1, DISPLAY_IMAGE_ROCKETS, DISPLAY_MODE_GPS))
     pdaGraphicProcess1.start()
     
-    #loraProcess = multiprocessing.Process(name="LoRa", target=pdaLoRa.init, args=(managerDict, logArray))
-    #loraProcess.start()
+    loraProcess = multiprocessing.Process(name="LoRa", target=pdaLoRa.init, args=(managerDict, logArray))
+    loraProcess.start()
     
     pdaGpsProcess = multiprocessing.Process(name="pdaGps", target=readGps, args=(managerDict,))
     pdaGpsProcess.start()
             
+    keyboard.on_press(getKeyPressEventFunction)          # EVENT
+    keyboard.on_release(getKeyReleaseEventFunction)      # EVENT
+        
     if CHAR_LCD_HEALTH_ENABLED:
-        global charLcdHealth
-        charLcdHealth = I2C_LCD_driver.lcd(CHAR_LCD_HEALTH_I2C_ADDRESS)
         printHealthLcd(init = True)
-        charLcdHealthLastDrawnTime = 0
+    
+    charLcdHealthLastDrawnTime = 0
     
     startingTime = time.time()
     magnetometerLastReadTime = 0
     shutdownLastReadTime = 0
-    
-    keyboardInitialized = False
-    keyboardInitializedLastReadTime = 0
-    
     
         
     shutdownButtonHolden = 0
     
     doShutdown = False
     
-    '''
-    import random
-
-    for i in range(DATA_LIST_MAX_PACKETS):
-        #tempList[i][DATA_LIST_PACKET_TIME] =  i/10.0 + random.random()
-        #tempList[i][DATA_LIST_BMP_180_ALT] = random.uniform(0, 3500)
-        logArray[i*DATA_LIST_VARIABLES + DATA_LIST_PACKET_TIME] = i/10.0 + random.random()
-        logArray[i*DATA_LIST_VARIABLES + DATA_LIST_BMP_180_ALT] = random.uniform(0, 3500)
-        #managerDict["logList"] = tempList
-        managerDict["logLength"] += 1
-        #saveList.appendListToFile(tempList[i])
-    '''
-    
-    while not doShutdown:         # Program main loop.
+    while not doShutdown:         # Program main loop Requested"]:
         
         if (time.time() >= magnetometerLastReadTime + MAGNETOMETER_INTERVAL):
             tempDict = dict(managerDict["pdaDataDict"])
@@ -283,29 +259,24 @@ def main():
             magnetometerLastReadTime = time.time()
         
         if (time.time() >= shutdownLastReadTime + SHUTDOWN_CHECK_INTERVAL):
-            
-            if GPIO.input(SHUTDOWN_BUTTON_GPIO):
-                shutdownButtonHolden += SHUTDOWN_CHECK_INTERVAL
-                if shutdownButtonHolden >= SHUTDOWN_BUTTON_HOLD_TIME:
-                    doShutdown = True
-                    
-            else:               # Resets the counter
-                if shutdownButtonHolden: # Checking before assigning instead of assigning all the time is cpu-friendlier
-                    shutdownButtonHolden = 0
-                    
+            if HAVE_SHUTDOWN_BUTTON:
+                if GPIO.input(SHUTDOWN_BUTTON_GPIO):
+                    shutdownButtonHolden += SHUTDOWN_CHECK_INTERVAL
+                    if shutdownButtonHolden >= SHUTDOWN_BUTTON_HOLD_TIME:
+                        doShutdown = True
+                        
+                else:               # Resets the counter
+                    if shutdownButtonHolden: # Checking before assigning instead of assigning all the time is cpu-friendlier
+                        shutdownButtonHolden = 0
+                        
             if managerDict["shutdownRequested"]:
                 doShutdown = True
             shutdownLastReadTime = time.time()
-            
+
         if CHAR_LCD_HEALTH_ENABLED:
             if time.time() >= charLcdHealthLastDrawnTime + CHAR_LCD_HEALTH_DELAY:
                 printHealthLcd()
-
-        if not keyboardInitialized:
-            if (time.time() >= keyboardInitializedLastReadTime + KEYBOARD_INIT_CHECK_INTERVAL):
-                keyboardInitialized = keyboardInitialize()
                 
-        KEYBOARD_INIT_CHECK_INTERVAL
         time.sleep(0.01)
         
     # ----- End of loop
@@ -317,10 +288,9 @@ def main():
     time.sleep(1.5) # Gives time to the displays to display the shutdown, for the gps process and for the 'LoRa + writing to log' process to stop.
     system("sudo shutdown -h now")
     
-# rpiClockGMTMinus3
 
 if __name__ == '__main__':
-    try:
-        main()
-    finally:
-        GPIO.cleanup()
+    #try:
+    main()
+    #finally:
+     #   GPIO.cleanup()

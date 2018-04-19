@@ -864,13 +864,13 @@ def drawHorizontalLine(posY = 63, fromX = 0, toX = 127, style = 1, use_memPlot =
 #==============================================================
 # Draw horizontal line from the edge to the edge after the bytes
 def drawHorizontalLine2(fromByteX = 0, toByteX = 5, posY = 0, pattern = 0b11111111):  
-    shift = fromByte
+    shift = fromByteX
     if (posY >= 32):
         posY = posY - 32
         shift = shift + 8     
 
     send2Bytes(0, 0b10000000 + posY, 0b10000000 + shift)     
-    for r in range(toByte - fromByte + 1):
+    for r in range(toByteX - fromByteX + 1):
         send2Bytes(1, pattern, pattern)     
         mapa[shift + r, posY, 0] = pattern 
         mapa[shift + r, posY, 1] = pattern 
@@ -1753,7 +1753,7 @@ def sendByte(rs,  byte):
 # 1) Use 1 data pin, 2 clk pins and 1 reset pin, in the same python process
 # 2) Use 2 data pins, 2 clk pins and 1 reset pins, in different process (multiprocessing), to have the fastest drawing rate.
 # (The assignResetPin is useful when having 2 LCDs, in the example 2), so you can just use 1 reset pin, to reset both process LCD.
-def init(DATA_PIN_ = 7, CLK_PIN_ = 8, assignResetPin = True, RESET_PIN_ = 25):
+def init(DATA_PIN_ = 24, CLK_PIN_ = 23, assignResetPin = True, RESET_PIN_ = 22):
     #DATA_PIN = 7       # (pin 26 = GPIO7)   = DATA    
     #CLK_PIN = 8        # (pin 24 = GPIO8)   = CLOCK  
     #RESET_PIN = 25      # (pin 22 = GPIO25)  = RESET
