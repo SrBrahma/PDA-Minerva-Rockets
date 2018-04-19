@@ -18,7 +18,7 @@ SPIspeed = 1562500  # Clock Speed in Hz (base 400MHz/256)
 
 
 # Basic configs
-def init(managerDictArg, logListArg):      
+def init(managerDictArg, logListArg):
     global managerDict, logList      # To work on the callback
     managerDict = managerDictArg
     logList = logListArg
@@ -32,12 +32,12 @@ def init(managerDictArg, logListArg):
     # wiringpi.pinMode(LED_PIN, wiringpi.GPIO.OUTPUT)
 
     reset()
-    
+
     main()
-    
-    
+
+
 # Where all happens (mostly)
-def main():       
+def main():
     # Bw125Cr45Sf128 = 0,	   ///< Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range
     # Bw500Cr45Sf128,	           ///< Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range
     # Bw31_25Cr48Sf512,	   ///< Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range
@@ -52,7 +52,7 @@ def main():
                                    coding_rate=RF95CodingRate.cr_4_8,
                                    spreading_factor=RF95SpreadingFactor.sf_12)
     }
-    
+
     print "SPI:",
     version = spi_read(RF95Registers.version)
     if version == 0x12:
@@ -107,8 +107,8 @@ def main():
     while True: #not managerDict["shutdownRequested"]:
         wiringpi.delay(1000000000) # Having this delay low <2000, was bugging the code.
     #saveList.deleteFileIfEmpty()
-    
-    
+
+
 def twos_complement(input_value, num_bits):
     #    Calculates a two's complement integer from the given input value's bits
     #    Copied from wikipedia: https://en.wikipedia.org/wiki/Two's_complement
@@ -395,7 +395,7 @@ def gpio_callback():
 
 
 
-            # MINERVA ROCKETS code part: 
+            # MINERVA ROCKETS code part:
             # Now convert the data (from bytes, of C float, to a python double (there is no 32bits float type in python)
             # First check if the custom additional header ("MNRV") matches
             if data[4:8] == RF_CUSTOM_HEADER_LIST:
@@ -408,44 +408,38 @@ def gpio_callback():
                     global_last_second_callback_time = time.time()
                     global_byte_sum = 0
                 global_byte_sum += RF_PACKET_DATA_LENGTH_BYTE
-                
+
                 for variable in range ((len(data)/4) - 2):
                     # https://stackoverflow.com/a/25559055
                     variableData = data[8+(variable * 4):12+(variable * 4)]
                     packedBytes = struct.pack('4B', *variableData)
                     lengthMulList = managerDict["logLength"] * DATA_LIST_VARIABLES
                     # Assigns the value of the variable to the list, and save it.
-                    
+
                     logList[lengthMulList + variable] = struct.unpack('<f', packedBytes)[0]
-                
+
                 # Gets and save additional data
                 # Apogee
                 if logList[lengthMulList + DATA_LIST_BMP_180_ALT] > managerDict["apogee"]:
                     if logList[lengthMulList + DATA_LIST_BMP_180_ALT] < RF_MAX_APOGEE:        # Filters eventual junks, so it won't mess the 2004 display.
                         managerDict["apogee"] = int(logList[lengthMulList + DATA_LIST_BMP_180_ALT])
-                # SNR
-                logList[lengthMulList + DATA_LIST_SNR] = varSNR
-                
-                # RSSI
-                logList[lengthMulList + DATA_LIST_RSSI] = varRSSI
-                
-                # Millis to Seconds
-                logList[lengthMulList + DATA_LIST_PACKET_TIME] = logList[lengthMulList + DATA_LIST_PACKET_TIME]/1000
+
+                logList[lengthMulList + DATA_LIST_SNR] = varSNR # SNR
+                logList[lengthMulList + DATA_LIST_RSSI] = varRSSI # RSSI
+
                 saveList.appendListToFile(logList[lengthMulList:lengthMulList + DATA_LIST_VARIABLES])
 
                 managerDict["logLength"] += 1
-                
-                managerDict["bytePerSecondRF"] = int(global_bytesPerSecond)
-            
-            elif data[4:8] == RF_CUSTOM_HEADER_EXTRA_LIST:
-                
-                
-                
-                
 
-                managerDict["logLength"] += 1
-                
                 managerDict["bytePerSecondRF"] = int(global_bytesPerSecond)
+
+            # Else checks if is a "MNEX" special package.
+            elif data[4:8] == RF_CUSTOM_HEADER_EXTRA_LIST:
+
+                managerDict["logExtraLength"] += 1
+
+                managerDict["bytePerSecondRF"] = int(global_bytesPerSecond)
+
     # spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
     spi_write(0x12, 0xff)
     # wiringpi.digitalWrite(LED_PIN, 0)
@@ -507,10 +501,3 @@ def set_modem_config(config):
     print "post config"
     print spi_read(RF95Registers.modem_config_1)
     print spi_read(RF95Registers.modem_config_2)
-
-
-
-
-
-
-
