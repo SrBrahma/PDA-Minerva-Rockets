@@ -20,8 +20,8 @@ GRAPH_X_AXIS_DEFAULT_INFOS_LIST = [
     ]
 
 GRAPH_Y_AXIS_DEFAULT_INFOS_LIST = [
-                #["GpsSats", "GpsSats", 0, 7, DATA_LIST_GPS_SATS],           # 0     7max explain: It logically will never reach >6 on Earth surface, but nice to see if there was a reception error (if == 7)
-                # ["GpsAlt", "GpsAlt(m)", 0, 3500, DATA_LIST_GPS_ALT],        # 0
+        #["GpsSats", "GpsSats", 0, 7, DATA_LIST_GPS_SATS],           # 0     7max explain: It logically will never reach >6 on Earth surface, but nice to see if there was a reception error (if == 7)
+        # ["GpsAlt", "GpsAlt(m)", 0, 3500, DATA_LIST_GPS_ALT],        # 0
 
     ["Bmp180Press", "Bmp180Press(Pa)", 0, 60, DATA_LIST_BMP_180_PRESS], # 1
     ["Bmp180Alt", "Bmp180Alt(m)", 0, 1200, DATA_LIST_BMP_180_ALT],      # 2
@@ -40,7 +40,7 @@ GRAPH_Y_AXIS_DEFAULT_INFOS_LIST = [
 
 # The defaults variablesId's to be loaded on the graph
 global_graphXAxisVarId = 1   # Time
-global_graphYAxisVarId = 2  # Altitude
+global_graphYAxisVarId = 2   # Altitude
 
 global_autoScaleX = True
 
@@ -371,13 +371,11 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
     if drawValues:
         xMin = global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE]
         xMax = global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE]
-
         yMin = global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE]
         yMax = global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE]
 
         xDist = (xMax - xMin) / 4
         yDist = (yMax - yMin) / 2
-
 
         # Print the x-axis values
 
@@ -385,7 +383,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
 
         numberStr = str(xMin)
         graphicLCD.printString3x5(numberStr, 8, 59, 0, use_memPlot = 1)
-
 
         numberStr = str(xMin + xDist)
         if len(numberStr) == 1:
@@ -401,7 +398,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
         if xMin + xDist < 0:        # If negative.. (the '-' char in the 3x5 font is just 2pixels wide)
             strPosX += 1
         graphicLCD.printString3x5(numberStr, strPosX, 59, 0, 0, use_memPlot = 1)
-
 
         numberStr = str(xMin + xDist*2)
         if len(numberStr) == 1:
@@ -433,7 +429,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
             strPosX += 1
         graphicLCD.printString3x5(numberStr, strPosX,   59, 0, use_memPlot = 1)
 
-
         numberStr = str(xMax)
         if len(numberStr) == 1:
             strPosX = 116
@@ -450,9 +445,7 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
         graphicLCD.printString3x5(numberStr, strPosX, 59, 0, use_memPlot = 1)
 
 
-
         # Print the y-axis values
-
         graphicLCD.drawRectangle(0, 0, 4, 63, fill = 1, style = 0, use_memPlot = 1) # Clears previous values on screen
 
         numberStr = str(yMin)
@@ -468,7 +461,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
             strPosY -= 1
         graphicLCD.printString3x5(numberStr, 0, strPosY, rotation = 1, use_memPlot = 1)
 
-
         numberStr = str(yMin + yDist)
         if len(numberStr) == 1:
             strPosY = 35
@@ -483,7 +475,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
         if (yMin + yDist) < 0:        # If negative.. (the '-' char in the 3x5 font is just 2pixels wide)
             strPosY -= 1
         graphicLCD.printString3x5(numberStr, 0, strPosY, rotation = 1, use_memPlot = 1)
-
 
         numberStr = str(yMax)
         if len(numberStr) == 1:
@@ -550,19 +541,16 @@ GPS_DISTANCE_RIGHT_X =  GPS_DISTANCE_LEFT_X + GPS_DISTANCE_MAX_LENGTH     # Is a
 
 def gpsGetDistanceAndAngle(lat1,lon1,lat2,lon2):
     earthAngle = sin(radians(lat1)) * sin(radians(lat2)) + cos(radians(lat1)) * cos(radians(lat2)) * cos(radians(lon2-lon1))
-
     if lat1 == lat2:        # Avoids division by 0
         bearingDegrees = 0
     else:
         bearingDegrees = degrees((lon1 - lon2) / (lat1 - lat2))
-
     return acos(earthAngle) * EARTH_RADIUS, bearingDegrees
 
 def gpsDrawTarget(bearingDegrees, style):
     # Center point
     posX = int(round(cos(radians(bearingDegrees)) * GPS_TARGET_DIST + GPS_CENTER_X))
     posY = int(round(sin(radians(bearingDegrees)) * (- GPS_TARGET_DIST) + GPS_CENTER_Y))
-
     graphicLCD.memPlot(posX,     posY,     style)
     graphicLCD.memPlot(posX,     posY - 1, style)
     graphicLCD.memPlot(posX - 1, posY,     style)
@@ -574,18 +562,14 @@ def gpsPrintDistance(distanceToTarget):
     string = str(distanceToTarget)
     if len(string) > GPS_DISTANCE_MAX_ALGARISMS:
         string = ">10k"
-
     string += "m"
-
     graphicLCD.printString3x5(string, GPS_DISTANCE_RIGHT_X, GPS_DISTANCE_TOP_Y, align = 2, use_memPlot = 1)
 
 def gpsDrawBackground():
     graphicLCD.printString3x5(GPS_DISTANCE_HEADER_STRING, GPS_DISTANCE_HEADER_LEFT_X, GPS_DISTANCE_TOP_Y, use_memPlot = 1)
-    graphicLCD.drawCircle(GPS_CENTER_X, GPS_CENTER_Y, 23, startDegree = 1, stopDegree = 360, stepDegree = 1,
-                          use_memPlot = 1)
+    graphicLCD.drawCircle(GPS_CENTER_X, GPS_CENTER_Y, 23, startDegree = 1, stopDegree = 360, stepDegree = 1, use_memPlot = 1)
     gpsPrintDistance(0)
     #graphicLCD.drawRectangle(5, 5, 122, 57, 0, use_memPlot = 1)
-
         # Draws the north symbol
     if (global_gpsMode == GPS_MODE_FIXED_NORTH):
         graphicLCD.drawVerticalLine(GPS_FIXED_NORTH_LEFT_X,     GPS_FIXED_NORTH_TOP_Y, 3, use_memPlot = 1)
@@ -599,11 +583,14 @@ def gpsDrawCone(magnetometerBearingDegree, style = 1):
         # Draw rotational cone
         graphicLCD.drawRadiusLine(GPS_CENTER_X, GPS_CENTER_Y, (degree - GPS_CONE_WIDENESS_DEGREE), GPS_CONE_RADIUS_PX, style, use_memPlot = 1)
         graphicLCD.drawRadiusLine(GPS_CENTER_X, GPS_CENTER_Y, (degree + GPS_CONE_WIDENESS_DEGREE), GPS_CONE_RADIUS_PX, style, use_memPlot = 1)
-
         if not style:
             graphicLCD.drawRectangle(GPS_CENTER_X - 1, GPS_CENTER_Y - 1, GPS_CENTER_X + 1, GPS_CENTER_Y + 1, fill = 1, style = 0, use_memPlot = 1)
         else:
             graphicLCD.drawRectangle(GPS_CENTER_X - 1, GPS_CENTER_Y - 1, GPS_CENTER_X + 1, GPS_CENTER_Y + 1, fill = 1, style = 2, use_memPlot = 1)
+
+# ==============================================================
+#                      EXTRA LOG FUNCTIONS
+# ==============================================================
 
 
 
@@ -780,15 +767,12 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
         graphicLCD.drawRectangle(MENU_LEFT_X, MENU_TOP_Y, MENU_RIGHT_X, MENU_BOTTOM_Y, use_memPlot = 1)
             # Clears the previous content inside the menu window
         menuClearArea(allInside = True)
-
         # Draws the decoration on the right of the menu name
         graphicLCD.drawHorizontalLine(MENU_DECORATION_TOP_Y, MENU_DECORATION_LEFT_X, MENU_DECORATION_RIGHT_X, use_memPlot = 1)
         graphicLCD.drawHorizontalLine(MENU_DECORATION_TOP_Y+2, MENU_DECORATION_LEFT_X, MENU_DECORATION_RIGHT_X, use_memPlot = 1)
         graphicLCD.drawHorizontalLine(MENU_DECORATION_TOP_Y+4, MENU_DECORATION_LEFT_X, MENU_DECORATION_RIGHT_X, use_memPlot = 1)
-
         # Draws the separator of the menu name and the menu options
         graphicLCD.drawHorizontalLine(MENU_NAME_SEPARATOR_Y, MENU_LEFT_X + 1, MENU_RIGHT_X - 1, use_memPlot = 1)
-
         # Draws the scroll outline
         graphicLCD.drawRectangle(MENU_SCROLL_OUTLINE_LEFT_X, MENU_SCROLL_OUTLINE_TOP_Y,
                                  MENU_SCROLL_OUTLINE_RIGHT_X, MENU_SCROLL_OUTLINE_BOTTOM_Y, use_memPlot = 1)
@@ -801,59 +785,43 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
     def menuDrawScrollbars(optionsAmount, idOfTopOption):
         menuClearArea(scrollbar = True)
         optionsToShow = MENU_OPTIONS_MAX_QUANTITY_DISPLAY
-
         if (optionsAmount < MENU_OPTIONS_MAX_QUANTITY_DISPLAY):
             optionsToShow = optionsAmount
-
         scrollSize = MENU_SCROLL_MAX_HEIGHT * optionsToShow / float (optionsAmount)
-
         hiddenOptions = optionsAmount - optionsToShow
-
         if hiddenOptions:
             scrollStepPosY = (MENU_SCROLL_MAX_HEIGHT - scrollSize) / hiddenOptions
         else:
             scrollStepPosY = 0
-
         scrollPosY = MENU_SCROLL_TOP_Y + scrollStepPosY * idOfTopOption
-
-        graphicLCD.drawRectangle(MENU_SCROLL_LEFT_X, int(round(scrollPosY)), MENU_SCROLL_RIGHT_X, int(round(scrollPosY + scrollSize))
-        , fill = 1, use_memPlot = 1)
+        graphicLCD.drawRectangle(MENU_SCROLL_LEFT_X, int(round(scrollPosY)), MENU_SCROLL_RIGHT_X, int(round(scrollPosY + scrollSize)), fill = 1, use_memPlot = 1)
 
     def menuDrawOptions(optionsList, optionsAmount, idOfTopOption):
         menuClearArea(options = True)
         untilOption = MENU_OPTIONS_MAX_QUANTITY_DISPLAY + idOfTopOption    # Not inclusive
-
         if untilOption > optionsAmount:
             untilOption = optionsAmount
-
         for option in range (idOfTopOption, untilOption):
             optionY = MENU_OPTIONS_TOP_Y + (MENU_OPTIONS_TOTAL_Y_DISTANCE * (option - idOfTopOption))
-
             if optionsList[option][MENU_OPTIONS_LIST_ONLY_DISPLAYS_VALUE]:
                 variableValue = optionsList[option][MENU_OPTIONS_LIST_VARIABLE]
                 xPos = graphicLCD.get3x5StringWidth(variableValue)
                 graphicLCD.printString3x5(variableValue, MENU_OPTIONS_LEFT_X, optionY, use_memPlot = 1)
-
             else:
                 graphicLCD.printString3x5(optionsList[option][MENU_OPTIONS_LIST_NAME], MENU_OPTIONS_LEFT_X, optionY, use_memPlot = 1)
-
             if optionsList[option][MENU_OPTIONS_LIST_CHECK]:
-
                 # Draw check circle
                 if optionsList[option][MENU_OPTIONS_LIST_CHECK] == MENU_OPTIONS_LIST_CHECK_CIRCLE:
                     graphicLCD.drawHorizontalLine(optionY, MENU_OPTIONS_CHECK_CIRCLE_LEFT_X, MENU_OPTIONS_CHECK_CIRCLE_RIGHT_X, use_memPlot = 1)
                     graphicLCD.drawHorizontalLine(optionY + 4, MENU_OPTIONS_CHECK_CIRCLE_LEFT_X, MENU_OPTIONS_CHECK_CIRCLE_RIGHT_X, use_memPlot = 1)
                     graphicLCD.drawVerticalLine(MENU_OPTIONS_CHECK_BOX_LEFT_X, optionY + 1, optionY + 3, use_memPlot = 1)
                     graphicLCD.drawVerticalLine(MENU_OPTIONS_CHECK_BOX_RIGHT_X, optionY + 1, optionY + 3, use_memPlot = 1)
-
                     if optionsList[option][MENU_OPTIONS_LIST_VARIABLE] == optionsList[option][MENU_OPTIONS_LIST_VALUE_TO_CHECK_CIRCLE]:
                         graphicLCD.memPlot(MENU_OPTIONS_CHECK_POINT_X, optionY + MENU_OPTIONS_CHECK_POINT_ADD_Y)
-
                 # Draw check box
                 elif optionsList[option][MENU_OPTIONS_LIST_CHECK] == MENU_OPTIONS_LIST_CHECK_BOX:
                     graphicLCD.drawRectangle(MENU_OPTIONS_CHECK_BOX_LEFT_X, optionY,
                                              MENU_OPTIONS_CHECK_BOX_RIGHT_X, optionY + MENU_OPTIONS_CHECK_BOX_ADD_Y, use_memPlot = 1)
-
                     if optionsList[option][MENU_OPTIONS_LIST_VARIABLE]:
                         graphicLCD.memPlot(MENU_OPTIONS_CHECK_POINT_X, optionY + MENU_OPTIONS_CHECK_POINT_ADD_Y)
     #
@@ -862,15 +830,12 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
     def menuDrawInvertHoveredOption(hoveredOption, idOfTopOption):
         visualOption = hoveredOption - idOfTopOption
         startY = (MENU_OPTIONS_TOP_Y - 1) + (MENU_OPTIONS_TOTAL_Y_DISTANCE * visualOption)
-
         graphicLCD.drawRectangle(MENU_OPTIONS_INVERT_HOVERED_LEFT_X, startY,
                                  MENU_OPTIONS_INVERT_HOVERED_RIGHT_X, MENU_OPTIONS_INVERT_BOTTOM_ADD_Y + startY,
                                  fill = 1, style = 2, use_memPlot = 1)
-
         # Draws the "flag" on the right of the rectangle
         graphicLCD.drawVerticalLine(MENU_OPTIONS_INVERT_HOVERED_RIGHT_X + 1, startY + 1, startY + 5, style = 2, use_memPlot = 1)
         graphicLCD.drawVerticalLine(MENU_OPTIONS_INVERT_HOVERED_RIGHT_X + 2, startY + 2, startY + 4, style = 2, use_memPlot = 1)
-    #
     # =-= End of menuDrawInvertHoveredOption function =-=
 
     # INIT:
@@ -888,39 +853,31 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
         global global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption, global_menuHoveredOptionId
         global_menuOptionsList = entireOptionDict[newOptionKey][MENU_OPTIONS_DICT_OPTIONS]
         global_menuOptionsAmount = len(global_menuOptionsList)
-
         global_menuIdOfTopOption = 0
         global_menuHoveredOptionId = 0
-
         menuDrawName(entireOptionDict[newOptionKey][MENU_OPTIONS_DICT_MENU_NAME])
         menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
         menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
         menuDrawScrollbars(global_menuOptionsAmount, global_menuHoveredOptionId)
-
         graphicLCD.memDump()
 
     # For now will only work with numbers.
     def menuEntryTextBox(menuName, originalValue, onlyNumbersAndSignals = True):
-
         # Draws the big box
         graphicLCD.drawRectangle(MENU_ENTRY_LEFT_X, MENU_ENTRY_TOP_Y, MENU_ENTRY_RIGHT_X, MENU_ENTRY_BOTTOM_Y, use_memPlot = 1)
-
         # Clears inside the big box
         graphicLCD.drawRectangle(MENU_ENTRY_LEFT_X + 1, MENU_ENTRY_TOP_Y + 1, MENU_ENTRY_RIGHT_X - 1, MENU_ENTRY_BOTTOM_Y - 1, fill = 1, style = 0, use_memPlot = 1)
-
         # Draws the menu name
         graphicLCD.printString3x5(menuName, MENU_ENTRY_NAME_CENTERED_X, MENU_ENTRY_NAME_TOP_Y, align = 1, use_memPlot = 1)
-
         # Draws the entry box
         graphicLCD.drawRectangle(MENU_ENTRY_TEXT_BOX_LEFT_X, MENU_ENTRY_TEXT_BOX_TOP_Y, MENU_ENTRY_TEXT_BOX_RIGHT_X, MENU_ENTRY_TEXT_BOX_BOTTOM_Y, use_memPlot = 1)
-
         graphicLCD.memDump()
-
         valueStr = str(originalValue)
         graphicLCD.printString3x5(valueStr, MENU_ENTRY_TEXT_CENTERED_X, MENU_ENTRY_TEXT_TOP_Y, align = 1, use_memPlot = 1)
         graphicLCD.memDump()
         changedStr = False
         done = False
+
         while not done:
             if managerDict[KEY_PRESSED_DICT_KEY]:
                 for number in range (10):
@@ -928,29 +885,23 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
                         valueStr += str(number)
                         changedStr = True
                         break
-
                 if managerDict[KEY_PRESSED_DICT_KEY] == "-":
                     valueStr += "-"
                     changedStr = True
-
                 elif managerDict[KEY_PRESSED_DICT_KEY] == ".":
                     valueStr += "."
                     changedStr = True
-
                 elif managerDict[KEY_PRESSED_DICT_KEY] == KEY_RETURN_STR:
                     valueStr = valueStr[:-1]
                     changedStr = True
-
                 elif managerDict[KEY_PRESSED_DICT_KEY] == KEY_CHANGE_ACTIVE_DISPLAY:
                     blinkScreen()
-
                 if changedStr:
                     # Clears the previous value from screen
                     graphicLCD.drawRectangle(MENU_ENTRY_TEXT_BOX_LEFT_X + 1, MENU_ENTRY_TEXT_BOX_TOP_Y + 1, MENU_ENTRY_TEXT_BOX_RIGHT_X - 1, MENU_ENTRY_TEXT_BOX_BOTTOM_Y - 1, style = 0, fill = 1, use_memPlot = 1)
                     graphicLCD.printString3x5(valueStr, MENU_ENTRY_TEXT_CENTERED_X, MENU_ENTRY_TEXT_TOP_Y, align = 1, use_memPlot = 1)
                     graphicLCD.memDump()
                     changedStr = False
-
                 # Select
                 elif managerDict[KEY_PRESSED_DICT_KEY] == KEY_SELECT_STR:
                     try:
@@ -964,52 +915,42 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
                         time.sleep(0.1)
                         graphicLCD.drawRectangle(MENU_ENTRY_TEXT_BOX_LEFT_X + 1, MENU_ENTRY_TEXT_BOX_TOP_Y + 1, MENU_ENTRY_TEXT_BOX_RIGHT_X - 1, MENU_ENTRY_TEXT_BOX_BOTTOM_Y - 1, style = 2, fill = 1, use_memPlot = 1)
                         graphicLCD.memDump()
-
                 elif managerDict[KEY_PRESSED_DICT_KEY] == KEY_ESCAPE_STR:
                     value = originalValue
                     done = True
-
                 managerDict[KEY_PRESSED_DICT_KEY] = ""
             time.sleep(0.01)
-
         menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
         menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
         graphicLCD.memDump()
-
         return value
     # -----
 
     def menuShutdown(managerDict): # Based on text entry box.
         # Draws the big box
         graphicLCD.drawRectangle(MENU_ENTRY_LEFT_X, MENU_ENTRY_TOP_Y, MENU_ENTRY_RIGHT_X, MENU_ENTRY_BOTTOM_Y, use_memPlot = 1)
-
         # Clears inside the big box
         graphicLCD.drawRectangle(MENU_ENTRY_LEFT_X + 1, MENU_ENTRY_TOP_Y + 1, MENU_ENTRY_RIGHT_X - 1, MENU_ENTRY_BOTTOM_Y - 1, fill = 1, style = 0, use_memPlot = 1)
-
         # Draws the menu name
         graphicLCD.printString3x5("Shutdown in", MENU_ENTRY_NAME_CENTERED_X, MENU_ENTRY_NAME_TOP_Y - 1, align = 1, use_memPlot = 1)
         graphicLCD.printString3x5("ABORT", MENU_ENTRY_NAME_CENTERED_X, 36, align = 1, use_memPlot = 1)
         graphicLCD.drawRectangle(53, 35, 73, 41, fill = 1, style = 2, use_memPlot = 1) # no constants here, time is running out :)
         graphicLCD.drawVerticalLine(74, 36, 40, use_memPlot = 1)
         graphicLCD.drawVerticalLine(75, 37, 39, use_memPlot = 1)
-
         shutdownTime = DISPLAY_SHUTDOWN_DELAY
         timeSleepDelay = 0.05
         while not(shutdownTime <= 0 or managerDict[KEY_PRESSED_DICT_KEY] == KEY_SELECT_STR or managerDict[KEY_PRESSED_DICT_KEY] in KEY_ESCAPE_STR_LIST):
             startTime = time.time()
             graphicLCD.printString3x5(str(int(ceil(shutdownTime)))+"s", MENU_ENTRY_NAME_CENTERED_X, MENU_ENTRY_NAME_TOP_Y + 5, align = 1, use_memPlot = 1)
-
             graphicLCD.memDump()
             time.sleep(timeSleepDelay)
             shutdownTime -= time.time() - startTime
 
             if managerDict[KEY_PRESSED_DICT_KEY] == KEY_CHANGE_ACTIVE_DISPLAY:
                 blinkScreen()
-
             if shutdownTime <= 0:
                 managerDict["shutdownRequested"] = True
                 menuCloseMenu()
-
         if shutdownTime > 0:
             menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
             menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
@@ -1033,51 +974,40 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
         if nameOfVariableStr == "xMin":
             global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = menuEntryTextBox("Initial X", global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE])
             graphDrawAxisInfos(drawValues = True, do_memDump = True)
-
         elif nameOfVariableStr == "xMax":
             global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] = menuEntryTextBox("Final X", global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE])
             graphDrawAxisInfos(drawValues = True, do_memDump = True)
-
         elif nameOfVariableStr == "yMin":
             global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = menuEntryTextBox("Initial Y", global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE])
             graphDrawAxisInfos(drawValues = True, do_memDump = True)
-
         elif nameOfVariableStr == "yMax":
             global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] = menuEntryTextBox("Final Y", global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE])
             graphDrawAxisInfos(drawValues = True, do_memDump = True)
-
         elif nameOfVariableStr == "xDefaults":
             global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = GRAPH_X_AXIS_DEFAULT_INFOS_LIST[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE]
             global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] = GRAPH_X_AXIS_DEFAULT_INFOS_LIST[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE]
             graphDrawAxisInfos(drawValues = True, do_memDump = True)
-
         elif nameOfVariableStr == "yDefaults":
             global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = GRAPH_Y_AXIS_DEFAULT_INFOS_LIST[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE]
             global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] = GRAPH_Y_AXIS_DEFAULT_INFOS_LIST[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE]
             graphDrawAxisInfos(drawValues = True, do_memDump = True)
-
         elif nameOfVariableStr == "connectPoints":
             global_graphConnectPoints = not global_graphConnectPoints
-
             # Change the variable value in the list (**** python)
             entireOptionDict["graphMainOptionList"][1][3][MENU_OPTIONS_LIST_VARIABLE] = global_graphConnectPoints
-
             menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
             menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
             graphicLCD.memDump()
-
         elif nameOfVariableStr == "stopReading":
             managerDict["readingRF"] = not managerDict["readingRF"]
-
             if managerDict["readingRF"]:
                 string = "Stop reading"
             else:
                 string = "Start reading"
-
             # Change the variable value in the list (**** python)
             entireOptionDict["graphSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
             entireOptionDict["gpsSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
-
+            entireOptionDict["extraLogSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
             menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
             menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
             graphicLCD.memDump()
@@ -1087,26 +1017,26 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
             if global_displayMode != DISPLAY_MODE_GPS:
                 global_displayMode = DISPLAY_MODE_GPS
                 menuCloseMenu()
-
         elif nameOfVariableStr == "graphMode": # Change to graphMode
             #global global_displayMode
             if global_displayMode != DISPLAY_MODE_GRAPHIC:
                 global_displayMode = DISPLAY_MODE_GRAPHIC
                 menuCloseMenu()
+        elif nameOfVariableStr == "extraLogMode": # Change to graphMode
+            #global global_displayMode
+            if global_displayMode != DISPLAY_MODE_EXTRA_LOG:
+                global_displayMode = DISPLAY_MODE_EXTRA_LOG
+                menuCloseMenu()
 
         elif nameOfVariableStr == "graphChangeYVar": # Change the Y axis variable
             global_graphYAxisVarId = additionalVariable
             graphDrawAxisInfos(drawValues = True, drawNames = True, do_memDump = True)
-
         elif nameOfVariableStr == "graphChangeXVar": # Change the Y axis variable
             global_graphXAxisVarId = additionalVariable
             graphDrawAxisInfos(drawValues = True, drawNames = True, do_memDump = True)
-
         elif nameOfVariableStr == "autoScaleX":
             global_autoScaleX = not global_autoScaleX
-
             entireOptionDict["graphMainOptionList"][1][4][MENU_OPTIONS_LIST_VARIABLE] = global_autoScaleX
-
             menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
             menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
             graphicLCD.memDump()
@@ -1118,16 +1048,15 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
             ("Change mode", False, (menuChangeMenu, "gpsChangeModeList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
-
         "gpsChangeModeList": (
             "CHANGE MODE MENU", (
             ("Graphic mode", False, (menuChangeValue, "graphMode"), global_displayMode, 1, DISPLAY_MODE_GRAPHIC),
             ("Gps mode", False, (menuChangeValue, "gpsMode"), global_displayMode, 1, DISPLAY_MODE_GPS),
+            ("Extra log mode", False, (menuChangeValue, "extraLogMode"), global_displayMode, 1, DISPLAY_MODE_EXTRA_LOG),
             ("System menu", False, (menuChangeMenu, "gpsSystemMenu"), 0, 0),
             ("Return", False, (menuChangeMenu, "gpsMainOptionList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0))
             ),
-
         "gpsSystemMenu": [
             "SYSTEM MENU", [
             ["", False, [menuChangeValue, "stopReading"], 0, 0],    # Will change to Start reading, if changed.
@@ -1145,16 +1074,15 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
             ["Auto scaling X", False, [menuChangeValue, "autoScaleX"], global_autoScaleX, 2],
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
-
         "graphChangeModeList": ( # Repeated this so the return will return to graph, and return from gps will return to gps. It is a crappy solution, but a fast one.
             "CHANGE MODE MENU", (
             ("Graphic mode", False, (menuChangeValue, "graphMode"), global_displayMode, 1, DISPLAY_MODE_GRAPHIC),
             ("Gps mode", False, (menuChangeValue, "gpsMode"), global_displayMode, 1, DISPLAY_MODE_GPS),
+            ("Extra log mode", False, (menuChangeValue, "extraLogMode"), global_displayMode, 1, DISPLAY_MODE_EXTRA_LOG),
             ("System menu", False, (menuChangeMenu, "graphSystemMenu"), 0, 0),
             ("Return", False, (menuChangeMenu, "graphMainOptionList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0))
             ),
-
         "graphSystemMenu": [
             "SYSTEM MENU", [
             ["", False, [menuChangeValue, "stopReading"], 0, 0],    # Will change to Start reading, if changed.
@@ -1162,7 +1090,6 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
             ("Return", False, (menuChangeMenu, "graphChangeModeList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
-
         "graphChangeYAxisList": (
             "CHANGE Y MENU", (
             ("Initial Y value", False, (menuChangeValue, "yMin"), 0, 0),
@@ -1172,11 +1099,8 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
             ("Return", False, (menuChangeMenu, "graphMainOptionList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0))
             ),
-
         "graphChangeYVariable": [
             "CHANGE Y VARIABLE", []],
-
-
         "graphChangeXAxisList": (
             "CHANGE X MENU", (
             ("Initial X value", False, (menuChangeValue, "xMin"), 0, 0),
@@ -1186,9 +1110,30 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
             ("Return", False, (menuChangeMenu, "graphMainOptionList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0))
             ),
-
         "graphChangeXVariable": [
-            "CHANGE X VARIABLE", []]
+            "CHANGE X VARIABLE", []],
+
+        "extraLogMainOptionList": [
+            "EXTRA LOG MODE MENU", [
+            ("Change mode", False, (menuChangeMenu, "extraLogChangeModeList"), 0, 0),
+            ("Close menu", False, (menuCloseMenu,), 0, 0)]
+            ],
+        "extraLogChangeModeList": (
+            "CHANGE MODE MENU", (
+            ("Graphic mode", False, (menuChangeValue, "graphMode"), global_displayMode, 1, DISPLAY_MODE_GRAPHIC),
+            ("Gps mode", False, (menuChangeValue, "gpsMode"), global_displayMode, 1, DISPLAY_MODE_GPS),
+            ("Extra log mode", False, (menuChangeValue, "extraLogMode"), global_displayMode, 1, DISPLAY_MODE_EXTRA_LOG),
+            ("System menu", False, (menuChangeMenu, "extraLogSystemMenu"), 0, 0),
+            ("Return", False, (menuChangeMenu, "extraLogMainOptionList"), 0, 0),
+            ("Close menu", False, (menuCloseMenu,), 0, 0))
+            ),
+        "extraLogSystemMenu": [
+            "SYSTEM MENU", [
+            ["", False, [menuChangeValue, "stopReading"], 0, 0],    # Will change to Start reading, if changed.
+            ("Sys shutdown", False, (menuShutdown, managerDict), 0, 0),
+            ("Return", False, (menuChangeMenu, "extraLogChangeModeList"), 0, 0),
+            ("Close menu", False, (menuCloseMenu,), 0, 0)]
+            ],
 
         } # END OF DICTIONARY
 
@@ -1287,34 +1232,27 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
 
             elif managerDict[KEY_PRESSED_DICT_KEY] == KEY_DOWN_STR:
                 if global_menuHoveredOptionId < global_menuOptionsAmount - 1:                 # - 1 as the optionId starts at 0
-
                     while True:
-
                         global_menuHoveredOptionId += 1
-
                         if ((global_menuHoveredOptionId >= global_menuOptionsAmount - MENU_OPTIONS_MIDDLE_OPTION + 1) or     # Only moves the invert
                            (global_menuHoveredOptionId < MENU_OPTIONS_MIDDLE_OPTION)):
                             if not onlyDrawInvert:
                                 menuDrawInvertHoveredOption(global_menuHoveredOptionId-1, global_menuIdOfTopOption)      # removes the previous invertHovered
                             onlyDrawInvert = True
-
                         else:                     # Moves the entire options
                             global_menuIdOfTopOption += 1
                             drawAllOptions = True
                         if global_menuOptionsList[global_menuHoveredOptionId][MENU_OPTIONS_LIST_ONLY_DISPLAYS_VALUE] == False:
                             break
-
                     # =-= End of loop
 
                     if drawAllOptions:
                         menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
                         menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
                         menuDrawScrollbars(global_menuOptionsAmount, global_menuIdOfTopOption)
-
                         changeValueOfIdOfTopOptionBy = 0
                         drawAllOptions = False
                         onlyDrawInvert = False
-
                     elif onlyDrawInvert:
                         menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)             # draws the new invertHovered
                         onlyDrawInvert = False
@@ -1327,6 +1265,11 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
             managerDict[KEY_PRESSED_DICT_KEY] = ""       # Reset the key value
 
         time.sleep(0.01)
+
+
+
+
+
 
 
 if __name__ == '__main__':

@@ -993,16 +993,16 @@ def loadTextFont(fileName):
     # for future referencies to myself. You can take them as lessons :)
     #
     # asbolute path relative to the program caller' path
-    # fullPathFileName = os.path.join(os.path.dirname(os.path.realpath('__file__')), fileName)
+    # fullPathFilename = os.path.join(os.path.dirname(os.path.realpath('__file__')), fileName)
     
     # absolute path, relative to this library path  (https://stackoverflow.com/a/25612797)
     script_path = os.path.abspath(__file__) # i.e. /path/to/dir/foobar.py
     script_dir = os.path.split(script_path)[0] #i.e. /path/to/dir/
-    fullPathFileName = os.path.join(script_dir, fileName)
+    fullPathFilename = os.path.join(script_dir, fileName)
     
-    # print (fullPathFileName)
+    # print (fullPathFilename)
     
-    fontfile = open(fullPathFileName, "r")
+    fontfile = open(fullPathFilename, "r")
     adresafontu = 0
     for row in fontfile:
         rozlozeno = row.split(",")                          # Saturation of individual bytes from one line ...
@@ -1321,9 +1321,9 @@ def loadBMP12864(imageRelativePath):
     # absolute path, relative to this library path  (https://stackoverflow.com/a/25612797)
     script_path = os.path.abspath(__file__) # i.e. /path/to/dir/foobar.py
     script_dir = os.path.split(script_path)[0] #i.e. /path/to/dir/
-    fullPathFileName = os.path.join(script_dir, imageRelativePath)
+    fullPathFilename = os.path.join(script_dir, imageRelativePath)
     
-    fileBMP = open(fullPathFileName, "rb")  # Load an image into a data variable []
+    fileBMP = open(fullPathFilename, "rb")  # Load an image into a data variable []
     data = fileBMP.read()  
     fileBMP.close()                          # File closure
 

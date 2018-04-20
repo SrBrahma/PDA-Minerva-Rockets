@@ -435,10 +435,8 @@ def gpio_callback():
 
             # Else checks if is a "MNEX" special package.
             elif data[4:8] == RF_CUSTOM_HEADER_EXTRA_LIST:
-
+                saveList.writeStringToExtraFile(data[8:])
                 managerDict["logExtraLength"] += 1
-
-                managerDict["bytePerSecondRF"] = int(global_bytesPerSecond)
 
     # spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
     spi_write(0x12, 0xff)
