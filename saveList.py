@@ -1,18 +1,20 @@
-import time
 import os
 import csv
 from pdaConstants import *
 
 SEPARATOR = ','
 RELATIVE_DIRECTORY = "log/"
-current_time = time.localtime()
 
-# Gets the absolute path to the directory
-# absolute path, relative to the program (https://stackoverflow.com/a/25612797)
+FILENAME_BASE = "log"
+FILENAME_BASE_EXTENSION = ".csv"
+FILENAME_EXTRA_EXTENSION = ".txt"
+FILENAME_EXTRA_SUFFIX = "extra"
+fileId = 0
+
+# Gets the absolute path to the directory absolute path, relative to the program (https://stackoverflow.com/a/25612797)
 script_path = os.path.abspath(__file__) # i.e. /path/to/dir/foobar.py
 script_dir = os.path.split(script_path)[0] #i.e. /path/to/dir/
 pathToDirectory = os.path.join(script_dir, RELATIVE_DIRECTORY)
-
 
 # Create the directory if doesn't exist
 if not os.path.exists(os.path.dirname(pathToDirectory)):
@@ -20,27 +22,19 @@ if not os.path.exists(os.path.dirname(pathToDirectory)):
         os.chmod(pathToDirectory, 0o777) # Give the permission to all users change the directory contents. 0o stands for octal.
         # This permission handling was needed, if the code was runned by su
 
-# The basic file name, without the increasing file id
-filenameBase = "log"
-filenameBaseExtension = ".csv"
-filenameExtraExtension = ".txt"
-filenameExtraSuffix = "extra"
-fileId = 0
-
 # Increases by 1 the id of the filename, if it already exists
-while os.path.exists(os.path.join(pathToDirectory, filenameBase + str(fileId) + ".csv")):
+while os.path.exists(os.path.join(pathToDirectory, FILENAME_BASE + str(fileId) + ".csv")):
     fileId += 1
 
 # The final filename
-fullPathFilename = os.path.join(pathToDirectory, filenameBase + str(fileId)) + filenameBaseExtension
-fullPathFilenameExtra = os.path.join(pathToDirectory, filenameBase + str(fileId)) + filenameExtraSuffix + filenameExtraExtension
+fullPathFilename = os.path.join(pathToDirectory, FILENAME_BASE + str(fileId)) + FILENAME_BASE_EXTENSION
+fullPathFilenameExtra = os.path.join(pathToDirectory, FILENAME_BASE + str(fileId)) + FILENAME_EXTRA_SUFFIX + FILENAME_EXTRA_EXTENSION
 
 # Writes the header to the CSV
 fileVariable = open(fullPathFilename, "a")
 csv.writer(fileVariable, delimiter=SEPARATOR).writerow(DATA_LIST_CSV_HEADER_NAME)
 fileSizeWithJustHeader = os.stat(fullPathFilename).st_size
 fileVariable.close()
-
 
 def writeStringToExtraFile(stringToWrite):
     fileVariable = open(fullPathFilenameExtra, "a")

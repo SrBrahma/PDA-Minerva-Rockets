@@ -55,7 +55,7 @@ GPS_MODE_FIXED_NORTH = 0
 GPS_MODE_VARIABLE_NORTH = 1
 
 # Yeap, I am using global variables. The code is small, and it runs around these variables. Deal with it.
-# Maybe I change it on future.
+# Maybe I change it on future. YEAH YOU FCKIN NEED TO MAKE IT BETTER I CANT UNDERSTAND A SIT NOW GRR
 
 global_gpsMode = GPS_MODE_FIXED_NORTH
 global_graphConnectPoints = 1
@@ -131,7 +131,7 @@ def mainLoop(managerDict, logArray):
         if redrawAll:
             graphicLCD.softClearGraphicDisplay(do_memDump = False)
 
-        # GRAPH
+# GRAPH MODE MAIN LOOP
         if global_displayMode == DISPLAY_MODE_GRAPHIC:
             if redrawAll:
                 graphDrawAxisInfos(drawBackground = True, drawValues = True, drawNames = True, do_memDump = True)
@@ -139,14 +139,11 @@ def mainLoop(managerDict, logArray):
                 startFromLogId = 0
                 hasDrawnAllX = 0
 
-
-
             logLength = managerDict["logLength"]
 
             if global_autoScaleX:
                 if global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] != logArray[global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]:
                     global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = int (logArray[global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]])
-
 
                 if global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] < logArray[(logLength - 1) * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]:
                     global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] = int (logArray[(logLength - 1) * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]])
@@ -159,7 +156,6 @@ def mainLoop(managerDict, logArray):
                 if global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] > logArray[global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]:
                     global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = int (logArray[global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]])
 
-
                 if global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] < logArray[(logLength - 1) * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]]:
                     global_graphYAxisInfoList[global_graphYAxisVarId][GRAPH_AXIS_INFO_MAX_VALUE] = int (logArray[(logLength - 1) * DATA_LIST_VARIABLES + global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_ORIGINAL_LIST_POS]])
                     graphDrawAxisInfos(drawValues = True)
@@ -170,7 +166,6 @@ def mainLoop(managerDict, logArray):
             if (logLength > startFromLogId and not hasDrawnAllX):
                 hasDrawnAllX, graphPrevXPos, graphPrevYPos = graphPlotGraphic(logArray, logLength, startFromLogId, graphPrevXPos, graphPrevYPos)
                 startFromLogId = logLength
-
             if global_displayMode != previousMode:
                 previousMode = global_displayMode
 
@@ -178,7 +173,7 @@ def mainLoop(managerDict, logArray):
         # ----- END OF GRAPH
 
 
-        # GPS
+# GPS MODE MAIN LOOP
         elif global_displayMode == DISPLAY_MODE_GPS:
             gpsMagnDegree = managerDict["pdaDataDict"]["magnBearing"]
             if redrawAll:
@@ -197,7 +192,6 @@ def mainLoop(managerDict, logArray):
                     gpsLastValidPacketId = gpsLastPacketChecked
                     gpsTargetLat = logArray[gpsLastPacketChecked * DATA_LIST_VARIABLES + DATA_LIST_GPS_LAT]
                     gpsTargetLon = logArray[gpsLastPacketChecked * DATA_LIST_VARIABLES + DATA_LIST_GPS_LON]
-
 
             gpsDistance, gpsDegree = gpsGetDistanceAndAngle(managerDict["pdaDataDict"]["gpsLat"], managerDict["pdaDataDict"]["gpsLon"], gpsTargetLat, gpsTargetLon)
 
@@ -344,7 +338,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
         graphicLCD.memPlot(121, 32) # graphY = y/2
         graphicLCD.memPlot(121, GRAPH_0_OF_Y_AXIS_Y_POS) # graphY = 0
 
-
         graphicLCD.memPlot(GRAPH_0_OF_X_AXIS_X_POS, 58) # graphX = 0      ON BOTTON
         graphicLCD.memPlot(35, 58) # graphX = x/4
         graphicLCD.memPlot(63, 58) # graphX = 2x/4
@@ -357,7 +350,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
         graphicLCD.memPlot(91, 6) # graphX = 3x/4
         graphicLCD.memPlot(GRAPH_MAX_OF_X_AXIS_X_POS, 6) # graphX = 3x/4
 
-
     # Print axis names
     if drawNames:
         xName = global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_FULL_NAME]
@@ -366,7 +358,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
         graphicLCD.drawRectangle(122, 6, 127, 58, fill = 1, style = 0, use_memPlot = 1)
         graphicLCD.printString3x5(xName, 63, 0, rotation = 0, align = 1, use_memPlot = 1)
         graphicLCD.printString3x5(yName, 123, 31, rotation = 1, align = 1, use_memPlot = 1)
-
 
     if drawValues:
         xMin = global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE]
@@ -378,7 +369,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
         yDist = (yMax - yMin) / 2
 
         # Print the x-axis values
-
         graphicLCD.drawRectangle(8, 59, 127, 63, fill = 1, style = 0, use_memPlot = 1) # Clears previous values on screen
 
         numberStr = str(xMin)
@@ -443,7 +433,6 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
         if xMax < 0:        # If negative.. (the '-' char in the 3x5 font is just 2pixels wide)
             strPosX += 1
         graphicLCD.printString3x5(numberStr, strPosX, 59, 0, use_memPlot = 1)
-
 
         # Print the y-axis values
         graphicLCD.drawRectangle(0, 0, 4, 63, fill = 1, style = 0, use_memPlot = 1) # Clears previous values on screen
