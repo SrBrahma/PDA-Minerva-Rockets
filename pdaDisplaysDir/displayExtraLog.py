@@ -1,6 +1,11 @@
-EXTRA_LOG_MAX_OPTIONS_ON_SCREEN = 7
-EXTRA_LOG_SCROLLBAR_LEFT_X = 117
+
 class DisplayExtraLog:
+    EXTRA_LOG_MAX_OPTIONS_ON_SCREEN = 7
+    EXTRA_LOG_SCROLLBAR_LEFT_X = 117
+    EXTRA_LOG_SCROLL_MAX_HEIGHT = 46
+    EXTRA_LOG_SCROLL_TOP_Y = 9
+    EXTRA_LOG_SCROLL_LEFT_X = 118
+    EXTRA_LOG_SCROLL_RIGHT_X = 119
 
     def __init__(self, graphicLCDObject, managerDict, extraLogArray):
         self.graphicLCD = graphicLCDObject
@@ -10,7 +15,7 @@ class DisplayExtraLog:
         self.actualLogIndex = 0
         self.numberOfStrings = 0
 
-    def updateStringList():
+    def updateStringList(self):
         if self.numberOfStrings != managerDict["logExtraLength"]:
             self.numberOfStrings = managerDict["logExtraLength"]
 
@@ -19,27 +24,27 @@ class DisplayExtraLog:
             endOfStringPos = self.extraLogArray[baseIndex:baseIndex + EXTRA_LOG_MAX_STRING_LENGTH].index("\0")
             self.stringsList.append(''.join(self.extraLogArray[baseIndex:endOfStringPos-1])) # https://stackoverflow.com/a/5618893
 
-    def drawBackground():
+    def drawBackground(self):
         self.graphicLCD.printString3x5("Extra Log", 63, 0, align = 1, use_memPlot = 1)
         self.graphicLCD.drawRectangle(5, 6, 122, 57, use_memPlot = 1) # Draws the big rectangle
         self.graphicLCD.drawRectangle( 117, 8, 120, 55, use_memPlot = 1) # Scrollbar outline
 
-    def menuDrawScrollbars(optionsAmount, idOfTopOption):
+    def menuDrawScrollbar(optionsAmount, idOfTopOption):
         menuClearArea(scrollbar = True)
         optionsToShow = EXTRA_LOG_MAX_OPTIONS_ON_SCREEN
         if (optionsAmount < EXTRA_LOG_MAX_OPTIONS_ON_SCREEN):
             optionsToShow = optionsAmount
-        scrollSize = MENU_SCROLL_MAX_HEIGHT * optionsToShow / float (optionsAmount)
+        scrollSize = EXTRA_LOG_SCROLL_MAX_HEIGHT * optionsToShow / float (optionsAmount)
         hiddenOptions = optionsAmount - optionsToShow
         if hiddenOptions:
-            scrollStepPosY = (MENU_SCROLL_MAX_HEIGHT - scrollSize) / hiddenOptions
+            scrollStepPosY = (EXTRA_LOG_SCROLL_MAX_HEIGHT - scrollSize) / hiddenOptions
         else:
             scrollStepPosY = 0
-        scrollPosY = MENU_SCROLL_TOP_Y + scrollStepPosY * idOfTopOption
-        graphicLCD.drawRectangle(MENU_SCROLL_LEFT_X, int(round(scrollPosY)), MENU_SCROLL_RIGHT_X, int(round(scrollPosY + scrollSize)), fill = 1, use_memPlot = 1)
+        scrollPosY = EXTRA_LOG_SCROLL_TOP_Y + scrollStepPosY * idOfTopOption
+        graphicLCD.drawRectangle(EXTRA_LOG_SCROLL_LEFT_X, int(round(scrollPosY)), EXTRA_LOG_SCROLL_RIGHT_X, int(round(scrollPosY + scrollSize)), fill = 1, use_memPlot = 1)
 
     def menuDrawOptions(optionsList, optionsAmount, idOfTopOption):
-        menuClearArea(options = True)
+        6, 7, 115, 55 # Clear previous options
         untilOption = EXTRA_LOG_MAX_OPTIONS_ON_SCREEN + idOfTopOption    # Not inclusive
         if untilOption > optionsAmount:
             untilOption = optionsAmount
