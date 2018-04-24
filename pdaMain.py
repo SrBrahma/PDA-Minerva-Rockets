@@ -15,17 +15,18 @@ import gps
 import I2C_LCD_driver
 from pdaConstants import *
 import magnetometerHMC5883L as magnetometer
-import pdaGraphics
+from pdaDisplaysDir.pdaDisplays import *
 import pdaLoRa
 
-# READ: All these codes (including the packages) were written in a incredibly hurry. There are many bad programming practices,
+# READ: All these codes (including the packages) were written in a incredible hurry. There are many bad programming practices,
 # such as abusive use of global variables. In the future, more calmly, I intend to improve it.
 
 
 
 # About the multiprocessing manager bug (explains the weird code I made): https://stackoverflow.com/a/8644552
 
-logArray = multiprocessing.Array('f', ARRAY_LENGTH)
+logArray = multiprocessing.Array('f', DATA_LOG_ARRAY_LENGTH)
+extraLogArray = multiprocessing.Array('c', EXTRA_LOG_ARRAY_LENGTH)
 
 if (HAVE_SHUTDOWN_BUTTON):
     GPIO.setmode(GPIO.BCM)
@@ -132,9 +133,10 @@ def printHealthLcd(init = False):
         charLcdHealth.lcd_display_string ("READ     | RGPS  OFF", 4, 0)
 
     else:
-        string = str(managerDict["apogee"])
-        string = fixStringLcd(string, CHAR_DISPLAY_APOGEE_MAX_LEN)
-        charLcdHealth.lcd_display_string (string, 1, CHAR_DISPLAY_APOGEE_BASE_POS - len(string) + 1)
+        if managerDict["apogee"] is not None:
+            string = str(managerDict["apogee"])
+            string = fixStringLcd(string, CHAR_DISPLAY_APOGEE_MAX_LEN)
+            charLcdHealth.lcd_display_string (string, 1, CHAR_DISPLAY_APOGEE_BASE_POS - len(string) + 1)
 
         string = str(int(logArray[(managerDict["logLength"] - 1) * DATA_LIST_VARIABLES + DATA_LIST_PACKET_ID]))
         string = fixStringLcd(string, CHAR_DISPLAY_PID_MAX_LEN)
@@ -182,22 +184,22 @@ def main():
     global_currentGraphicDisplay = 0
     managerDict = multiprocessing.Manager().dict()
 
-    managerDict.update({"doShutdown0": 0, "doShutdown1": 0, "keyPressed0": 0, "keyPressed1": 0, "shutdownRequested": 0, "logLength": 0, "pdaDataDict": pdaDataDict, "readingRF": 1, "apogee": , "bytePerSecondRF": 0}) # Is the same as the lines below
+    managerDict.update({"doShutdown0": 0, "doShutdown1": 0, "keyPressed0": 0, "keyPressed1": 0, "shutdownRequested": 0, "logLength": 0, "pdaDataDict": pdaDataDict, "readingRF": 1, "apogee": None, "bytePerSecondRF": 0}) # Is the same as the lines below
 
 
     # Start display 0
     pdaGraphicProcess0 = multiprocessing.Process(name="pdaDisplay0", target=pdaGraphics.init,
                     #managerDict  pinRW                 pinE    haveReset   pinReset   thisGraphicId initImageId initInDisplayMode
-        args=(managerDict, logArray, PIN_DISPLAY0_RW, PIN_DISPLAY0_E, True, PIN_DISPLAYS_RST, 0, DISPLAY_IMAGE_BRAZIL, DISPLAY_MODE_GRAPHIC))
+        args=(managerDict, logArray, extraLogArray, PIN_DISPLAY0_RW, PIN_DISPLAY0_E, True, PIN_DISPLAYS_RST, 0, DISPLAY_IMAGE_BRAZIL, DISPLAY_MODE_GRAPHIC))
     pdaGraphicProcess0.start()
 
     # Start display 1
     pdaGraphicProcess1 = multiprocessing.Process(name="pdaDisplay1", target=pdaGraphics.init,
                     #managerDict  pinRW                 pinE    haveReset   pinReset   thisGraphicId initImageId initInDisplayMode
-        args=(managerDict, logArray, PIN_DISPLAY1_RW, PIN_DISPLAY1_E, False, PIN_DISPLAYS_RST, 1, DISPLAY_IMAGE_ROCKETS, DISPLAY_MODE_GPS))
+        args=(managerDict, logArray, extraLogArray, PIN_DISPLAY1_RW, PIN_DISPLAY1_E, False, PIN_DISPLAYS_RST, 1, DISPLAY_IMAGE_ROCKETS, DISPLAY_MODE_GPS))
     pdaGraphicProcess1.start()
 
-    loraProcess = multiprocessing.Process(name="LoRa", target=pdaLoRa.init, args=(managerDict, logArray))
+    loraProcess = multiprocessing.Process(name="LoRa", target=pdaLoRa.init, args=(managerDict, logArray, extraLogArray))
     loraProcess.start()
 
     pdaGpsProcess = multiprocessing.Process(name="pdaGps", target=readGps, args=(managerDict,))

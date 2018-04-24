@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
+# ToDo: Decompose each mode (gps, graph) into a file of a class. 23/04/2018
 import glcd12864zw as graphicLCD
 import RPi.GPIO as GPIO
 #import timeit
@@ -330,11 +331,11 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
     if drawBackground:
         graphicLCD.drawRectangle(6, 7, 120, 57, use_memPlot = 1)
 
-        graphicLCD.memPlot(5,  GRAPH_MAX_OF_Y_AXIS_Y_POS) # graphY = y      ON LEFT
+        graphicLCD.memPlot(5, GRAPH_MAX_OF_Y_AXIS_Y_POS) # graphY = y      ON LEFT
         graphicLCD.memPlot(5, 32) # graphY = y/2
         graphicLCD.memPlot(5, GRAPH_0_OF_Y_AXIS_Y_POS) # graphY = 0
 
-        graphicLCD.memPlot(121,  GRAPH_MAX_OF_Y_AXIS_Y_POS) # graphY = y    ON LEFT
+        graphicLCD.memPlot(121, GRAPH_MAX_OF_Y_AXIS_Y_POS) # graphY = y    ON LEFT
         graphicLCD.memPlot(121, 32) # graphY = y/2
         graphicLCD.memPlot(121, GRAPH_0_OF_Y_AXIS_Y_POS) # graphY = 0
 
@@ -417,7 +418,7 @@ def graphDrawAxisInfos(drawBackground = False, drawValues = False, drawNames = F
             strPosX = 80
         if xMin + xDist*3 < 0:        # If negative.. (the '-' char in the 3x5 font is just 2pixels wide)
             strPosX += 1
-        graphicLCD.printString3x5(numberStr, strPosX,   59, 0, use_memPlot = 1)
+        graphicLCD.printString3x5(numberStr, strPosX, 59, 0, use_memPlot = 1)
 
         numberStr = str(xMax)
         if len(numberStr) == 1:
@@ -576,13 +577,6 @@ def gpsDrawCone(magnetometerBearingDegree, style = 1):
             graphicLCD.drawRectangle(GPS_CENTER_X - 1, GPS_CENTER_Y - 1, GPS_CENTER_X + 1, GPS_CENTER_Y + 1, fill = 1, style = 0, use_memPlot = 1)
         else:
             graphicLCD.drawRectangle(GPS_CENTER_X - 1, GPS_CENTER_Y - 1, GPS_CENTER_X + 1, GPS_CENTER_Y + 1, fill = 1, style = 2, use_memPlot = 1)
-
-# ==============================================================
-#                      EXTRA LOG FUNCTIONS
-# ==============================================================
-
-
-
 
 
 # ==============================================================
@@ -813,7 +807,6 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
                                              MENU_OPTIONS_CHECK_BOX_RIGHT_X, optionY + MENU_OPTIONS_CHECK_BOX_ADD_Y, use_memPlot = 1)
                     if optionsList[option][MENU_OPTIONS_LIST_VARIABLE]:
                         graphicLCD.memPlot(MENU_OPTIONS_CHECK_POINT_X, optionY + MENU_OPTIONS_CHECK_POINT_ADD_Y)
-    #
     # =-= End of menuDrawOptions function =-=
 
     def menuDrawInvertHoveredOption(hoveredOption, idOfTopOption):
@@ -825,18 +818,10 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
         # Draws the "flag" on the right of the rectangle
         graphicLCD.drawVerticalLine(MENU_OPTIONS_INVERT_HOVERED_RIGHT_X + 1, startY + 1, startY + 5, style = 2, use_memPlot = 1)
         graphicLCD.drawVerticalLine(MENU_OPTIONS_INVERT_HOVERED_RIGHT_X + 2, startY + 2, startY + 4, style = 2, use_memPlot = 1)
-    # =-= End of menuDrawInvertHoveredOption function =-=
 
     # INIT:
-    global global_displayMode
-    global global_gpsMode
-    global global_graphConnectPoints
-    global global_menuOptionsList
-    global global_menuOptionsAmount
-    global global_menuIdOfTopOption
-    global global_menuHoveredOptionId
-    global global_menuCloseMenu
-    global global_autoScaleX
+    global global_displayMode, global_gpsMode, global_graphConnectPoints, global_menuOptionsList, global_menuOptionsAmount
+    global global_menuIdOfTopOption, global_menuHoveredOptionId, global_menuCloseMenu, global_autoScaleX
 
     def menuChangeMenu(newOptionKey):
         global global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption, global_menuHoveredOptionId
@@ -850,8 +835,15 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
         menuDrawScrollbars(global_menuOptionsAmount, global_menuHoveredOptionId)
         graphicLCD.memDump()
 
-    # For now will only work with numbers.
-    def menuEntryTextBox(menuName, originalValue, onlyNumbersAndSignals = True):
+    def menuReturnToModeRoot(displayMode):
+        if displayMode = DISPLAY_MODE_GPS:
+            menuChangeMenu("gpsMainOptionList")
+        if displayMode = DISPLAY_MODE_GRAPHIC:
+            menuChangeMenu("graphMainOptionList")
+        if displayMode = DISPLAY_MODE_EXTRA_LOG:
+            menuChangeMenu("extraLogMainOptionList")
+
+    def menuEntryTextBox(menuName, originalValue, onlyNumbersAndSignals = True): # For now will only work with numbers.
         # Draws the big box
         graphicLCD.drawRectangle(MENU_ENTRY_LEFT_X, MENU_ENTRY_TOP_Y, MENU_ENTRY_RIGHT_X, MENU_ENTRY_BOTTOM_Y, use_memPlot = 1)
         # Clears inside the big box
@@ -952,13 +944,8 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
         global_menuCloseMenu = True
 
     def menuChangeValue(nameOfVariableStr, additionalVariable = 0):
-        global global_graphXAxisInfoList
-        global global_graphXAxisVarId
-        global global_graphYAxisInfoList
-        global global_graphYAxisVarId
-        global global_displayMode
-        global global_graphConnectPoints
-        global global_autoScaleX
+        global global_graphXAxisInfoList, global_graphXAxisVarId, global_graphYAxisInfoList, global_graphYAxisVarId
+        global global_displayMode, global_graphConnectPoints, global_autoScaleX
 
         if nameOfVariableStr == "xMin":
             global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE] = menuEntryTextBox("Initial X", global_graphXAxisInfoList[global_graphXAxisVarId][GRAPH_AXIS_INFO_MIN_VALUE])
@@ -990,13 +977,9 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
         elif nameOfVariableStr == "stopReading":
             managerDict["readingRF"] = not managerDict["readingRF"]
             if managerDict["readingRF"]:
-                string = "Stop reading"
+                entireOptionDict["systemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = "Stop reading"
             else:
-                string = "Start reading"
-            # Change the variable value in the list (**** python)
-            entireOptionDict["graphSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
-            entireOptionDict["gpsSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
-            entireOptionDict["extraLogSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
+                entireOptionDict["systemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = "Start reading"
             menuDrawOptions(global_menuOptionsList, global_menuOptionsAmount, global_menuIdOfTopOption)
             menuDrawInvertHoveredOption(global_menuHoveredOptionId, global_menuIdOfTopOption)
             graphicLCD.memDump()
@@ -1034,49 +1017,17 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
     entireOptionDict = {
         "gpsMainOptionList": [
             "GPS MODE MENU", [
-            ("Change mode", False, (menuChangeMenu, "gpsChangeModeList"), 0, 0),
-            ("Close menu", False, (menuCloseMenu,), 0, 0)]
-            ],
-        "gpsChangeModeList": (
-            "CHANGE MODE MENU", (
-            ("Graphic mode", False, (menuChangeValue, "graphMode"), global_displayMode, 1, DISPLAY_MODE_GRAPHIC),
-            ("Gps mode", False, (menuChangeValue, "gpsMode"), global_displayMode, 1, DISPLAY_MODE_GPS),
-            ("Extra log mode", False, (menuChangeValue, "extraLogMode"), global_displayMode, 1, DISPLAY_MODE_EXTRA_LOG),
-            ("System menu", False, (menuChangeMenu, "gpsSystemMenu"), 0, 0),
-            ("Return", False, (menuChangeMenu, "gpsMainOptionList"), 0, 0),
-            ("Close menu", False, (menuCloseMenu,), 0, 0))
-            ),
-        "gpsSystemMenu": [
-            "SYSTEM MENU", [
-            ["", False, [menuChangeValue, "stopReading"], 0, 0],    # Will change to Start reading, if changed.
-            ("Sys shutdown", False, (menuShutdown, managerDict), 0, 0),
-            ("Return", False, (menuChangeMenu, "gpsChangeModeList"), 0, 0),
+            ("Change mode", False, (menuChangeMenu, "changeModeList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
 
         "graphMainOptionList": [
             "GRAPHIC MODE MENU", [
-            ("Change mode", False, (menuChangeMenu, "graphChangeModeList"), 0, 0),
+            ("Change mode", False, (menuChangeMenu, "changeModeList"), 0, 0),
             ("Change Y axis", False, (menuChangeMenu, "graphChangeYAxisList"), 0, 0),
             ("Change X axis", False, (menuChangeMenu, "graphChangeXAxisList"), 0, 0),
             ["Connect points", False, [menuChangeValue, "connectPoints"], global_graphConnectPoints, 2],
             ["Auto scaling X", False, [menuChangeValue, "autoScaleX"], global_autoScaleX, 2],
-            ("Close menu", False, (menuCloseMenu,), 0, 0)]
-            ],
-        "graphChangeModeList": ( # Repeated this so the return will return to graph, and return from gps will return to gps. It is a crappy solution, but a fast one.
-            "CHANGE MODE MENU", (
-            ("Graphic mode", False, (menuChangeValue, "graphMode"), global_displayMode, 1, DISPLAY_MODE_GRAPHIC),
-            ("Gps mode", False, (menuChangeValue, "gpsMode"), global_displayMode, 1, DISPLAY_MODE_GPS),
-            ("Extra log mode", False, (menuChangeValue, "extraLogMode"), global_displayMode, 1, DISPLAY_MODE_EXTRA_LOG),
-            ("System menu", False, (menuChangeMenu, "graphSystemMenu"), 0, 0),
-            ("Return", False, (menuChangeMenu, "graphMainOptionList"), 0, 0),
-            ("Close menu", False, (menuCloseMenu,), 0, 0))
-            ),
-        "graphSystemMenu": [
-            "SYSTEM MENU", [
-            ["", False, [menuChangeValue, "stopReading"], 0, 0],    # Will change to Start reading, if changed.
-            ("Sys shutdown", False, (menuShutdown, managerDict), 0, 0),
-            ("Return", False, (menuChangeMenu, "graphChangeModeList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
         "graphChangeYAxisList": (
@@ -1104,23 +1055,24 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
 
         "extraLogMainOptionList": [
             "EXTRA LOG MODE MENU", [
-            ("Change mode", False, (menuChangeMenu, "extraLogChangeModeList"), 0, 0),
+            ("Change mode", False, (menuChangeMenu, "changeModeList"), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
-        "extraLogChangeModeList": (
+
+        "changeModeList": (
             "CHANGE MODE MENU", (
             ("Graphic mode", False, (menuChangeValue, "graphMode"), global_displayMode, 1, DISPLAY_MODE_GRAPHIC),
             ("Gps mode", False, (menuChangeValue, "gpsMode"), global_displayMode, 1, DISPLAY_MODE_GPS),
             ("Extra log mode", False, (menuChangeValue, "extraLogMode"), global_displayMode, 1, DISPLAY_MODE_EXTRA_LOG),
-            ("System menu", False, (menuChangeMenu, "extraLogSystemMenu"), 0, 0),
-            ("Return", False, (menuChangeMenu, "extraLogMainOptionList"), 0, 0),
+            ("System menu", False, (menuChangeMenu, "systemMenu"), 0, 0),
+            ("Return", False, (menuReturnToModeRoot, global_displayMode), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0))
             ),
-        "extraLogSystemMenu": [
+        "systemMenu": [
             "SYSTEM MENU", [
             ["", False, [menuChangeValue, "stopReading"], 0, 0],    # Will change to Start reading, if changed.
             ("Sys shutdown", False, (menuShutdown, managerDict), 0, 0),
-            ("Return", False, (menuChangeMenu, "extraLogChangeModeList"), 0, 0),
+            ("Return", False, (menuReturnToModeRoot, global_displayMode), 0, 0),
             ("Close menu", False, (menuCloseMenu,), 0, 0)]
             ],
 
@@ -1144,8 +1096,7 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
         string = "Start reading"
 
         # Change the variable value in the list (**** python)
-    entireOptionDict["gpsSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
-    entireOptionDict["graphSystemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
+    entireOptionDict["systemMenu"][1][0][MENU_OPTIONS_LIST_NAME] = string
 
     # Default actions:
     menuDrawBasicWindow()
@@ -1254,11 +1205,6 @@ def drawAndControlMenu(managerDict): # Menu designed to have 4 options showing a
             managerDict[KEY_PRESSED_DICT_KEY] = ""       # Reset the key value
 
         time.sleep(0.01)
-
-
-
-
-
 
 
 if __name__ == '__main__':

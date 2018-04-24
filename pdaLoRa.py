@@ -6,7 +6,7 @@ import wiringpi         # "sudo pip install wiring pi"
 import time
 import struct   # to pack and unpack the 4bytes, C float type to python double "float".
 from pdaConstants import *
-import saveList
+import pdaSaveLoadFile
 
 
 # LED_PIN = 23
@@ -18,10 +18,11 @@ SPIspeed = 1562500  # Clock Speed in Hz (base 400MHz/256)
 
 
 # Basic configs
-def init(managerDictArg, logListArg):
-    global managerDict, logList      # To work on the callback
+def init(managerDictArg, logListArg, extraLogArrayArg):
+    global managerDict, logList, extraLogArray      # To work on the callback
     managerDict = managerDictArg
     logList = logListArg
+    extraLogArray = extraLogArrayArg
 
     wiringpi.wiringPiSetupGpio()          # Set the BCM pin numbering
     wiringpi.wiringPiSPISetup(LORA_SPI_CHANNEL, SPIspeed)
@@ -106,7 +107,7 @@ def main():
 
     while True: #not managerDict["shutdownRequested"]:
         wiringpi.delay(1000000000) # Having this delay low <2000, was bugging the code.
-    #saveList.deleteFileIfEmpty()
+    #pdaSaveLoadFile.deleteFileIfEmpty()
 
 
 def twos_complement(input_value, num_bits):
@@ -416,7 +417,7 @@ def gpio_callback():
                     lengthMulList = managerDict["logLength"] * DATA_LIST_VARIABLES
                     # Assigns the value of the variable to the list, and save it.
 
-                    logList[lengthMulList + variable] = struct.unpack('<f', packedBytes)[0]
+                    logList[lengthMulList + variable] = struct.unpack('<f', packedBytes)[0] # <f for little endian, >f for big endian.
 
                 # Gets and save additional data
                 # Apogee
@@ -427,7 +428,7 @@ def gpio_callback():
                 logList[lengthMulList + DATA_LIST_SNR] = varSNR # SNR
                 logList[lengthMulList + DATA_LIST_RSSI] = varRSSI # RSSI
 
-                saveList.appendListToFile(logList[lengthMulList:lengthMulList + DATA_LIST_VARIABLES])
+                pdaSaveLoadFile.appendListToFile(logList[lengthMulList:lengthMulList + DATA_LIST_VARIABLES])
 
                 managerDict["logLength"] += 1
 
@@ -435,7 +436,13 @@ def gpio_callback():
 
             # Else checks if is a "MNEX" special package.
             elif data[4:8] == RF_CUSTOM_HEADER_EXTRA_LIST:
-                saveList.writeStringToExtraFile(data[8:])
+                extraLogString = ''.join(chr(byte) for byte in data[8:]) # https://stackoverflow.com/a/5618893, each position is a int value. Convert each value to chr before.
+
+                pdaSaveLoadFile.writeStringToExtraFile(extraLogString) # Write this on extra log file
+
+                baseIndex = EXTRA_LOG_MAX_STRING_LENGTH * managerDict["logExtraLength"]
+
+                extraLogArray[baseIndex : baseIndex + len(data[8:]) + 1] = extraLogString + "\0" # "\0" for finding the end of the string. http://tpcg.io/KW9S81 
                 managerDict["logExtraLength"] += 1
 
     # spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
